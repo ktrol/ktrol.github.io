@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#07080b">
+<title>Ctrl — Developer Portfolio</title>
+<meta name="description" content="Ctrl is a Roblox developer building game systems, reactive UI and data that never loses progress.">
+<style>
+  /* ============ Tokens ============ */
+  :root {
+    --bg: #07080b;
+    --bg-2: #0d0f14;
+    --panel: #11141b;
+    --panel-2: #161a23;
+    --line: rgba(255,255,255,.08);
+    --line-2: rgba(255,255,255,.14);
+    --text: #e8eaf0;
+    --muted: #8a909c;
+    --accent: #7c9cff;
+    --accent-2: #3dd9b0;
+    --glow: rgba(124,156,255,.25);
+    --radius: 18px;
+    --radius-sm: 12px;
+    --max: 1200px;
+    --gutter: clamp(20px, 5vw, 48px);
+    --section: clamp(72px, 10vw, 128px);
+    --ease: cubic-bezier(.2,.7,.2,1);
+    --nav-h: 68px;
+  }
+
+  /* ============ Base ============ */
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--nav-h) + 16px); }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: clamp(.95rem, .9rem + .2vw, 1.05rem);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  img, video, svg { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button, input, textarea { font: inherit; }
+  ::selection { background: var(--accent); color: #000; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  .container { width: 100%; max-width: var(--max); margin-inline: auto; padding-inline: var(--gutter); }
+  .section { padding-block: var(--section); }
+  .section-head { max-width: 720px; margin-bottom: clamp(40px, 6vw, 64px); }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: .76rem; font-weight: 600; text-transform: uppercase; letter-spacing: .2em;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--accent); }
+  h1, h2, h3 { letter-spacing: -.025em; line-height: 1.08; font-weight: 800; }
+  h1 { font-size: clamp(2.5rem, 1.2rem + 4.2vw, 4.9rem); }
+  h2 { font-size: clamp(2rem, 1.2rem + 3vw, 3.4rem); margin-bottom: 16px; }
+  h3 { font-size: clamp(1.15rem, 1rem + .6vw, 1.45rem); }
+  .lead { color: var(--muted); font-size: clamp(1rem, .95rem + .3vw, 1.15rem); max-width: 62ch; }
+  .gradient-text {
+    background: linear-gradient(120deg, var(--text) 10%, var(--accent) 50%, var(--accent-2) 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    background-size: 200% auto; animation: shine 7s linear infinite;
+  }
+  @keyframes shine { to { background-position: 200% center; } }
+
+  /* ============ Intro ============ */
+  #intro {
+    position: fixed; inset: 0; z-index: 1000; background: var(--bg);
+    display: grid; place-items: center; padding: 24px;
+    transition: transform 1s var(--ease), opacity .6s ease;
+  }
+  #intro .intro-mark {
+    font-size: clamp(2.4rem, 8vw, 5rem); font-weight: 800; letter-spacing: -.03em; text-align: center;
+    opacity: 0; transform: translateY(20px); animation: introIn .9s var(--ease) .2s forwards;
+  }
+  #intro .intro-mark span { color: var(--accent); }
+  #intro .intro-bar {
+    width: min(220px, 60vw); height: 2px; margin: 24px auto 0;
+    background: var(--line); overflow: hidden; border-radius: 2px;
+  }
+  #intro .intro-bar::after {
+    content: ""; display: block; height: 100%; width: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform: translateX(-100%); animation: introLoad 1.4s var(--ease) .3s forwards;
+  }
+  #intro.done { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+  @keyframes introIn { to { opacity: 1; transform: none; } }
+  @keyframes introLoad { to { transform: none; } }
+
+  /* ============ Section themes ============ */
+  .theme-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    --c1: rgb(124,156,255); --c2: rgb(61,217,176); --c3: rgb(26,34,80);
+    background:
+      radial-gradient(70vmax 60vmax at 12% 8%, var(--c1) 0%, transparent 70%),
+      radial-gradient(60vmax 55vmax at 92% 46%, var(--c2) 0%, transparent 70%),
+      radial-gradient(90vmax 60vmax at 40% 104%, var(--c3) 0%, transparent 72%),
+      #07080b;
+    opacity: .34;
+    animation: themeBreathe 9s ease-in-out infinite;
+    will-change: background;
+  }
+  @keyframes themeBreathe { 50% { opacity: .46; } }
+  @media (max-width: 720px) { .theme-bg { opacity: .28; animation: none; } }
+  .theme-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(7,8,11,.55) 100%);
+  }
+
+  /* ============ Background ============ */
+  .grid-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: clamp(40px, 6vw, 64px) clamp(40px, 6vw, 64px);
+    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+    opacity: .45;
+  }
+  .bg-glow {
+    position: fixed; width: min(600px, 90vw); aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, var(--glow), transparent 70%);
+    pointer-events: none; z-index: 0; transform: translate(-50%,-50%);
+    left: 50%; top: 30%; filter: blur(20px);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .bg-glow { transition: left .25s linear, top .25s linear; }
+  }
+  @media (hover: none), (pointer: coarse) { .bg-glow { display: none; } }
+  body > header, main, footer { position: relative; z-index: 1; }
+
+  /* ============ Nav ============ */
+  .nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 50; height: var(--nav-h);
+    backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: rgba(7,8,11,.6); border-bottom: 1px solid transparent;
+    transition: border-color .3s, background .3s;
+  }
+  .nav.scrolled { border-color: var(--line); background: rgba(7,8,11,.82); }
+  .nav .container { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .logo { font-weight: 800; letter-spacing: -.02em; font-size: 1.1rem; }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: clamp(18px, 2.4vw, 30px); list-style: none; }
+  .nav-links a { font-size: .9rem; color: var(--muted); position: relative; transition: color .3s; padding-block: 6px; }
+  .nav-links a::after {
+    content: ""; position: absolute; left: 0; bottom: 0; height: 1px; width: 0;
+    background: var(--accent); transition: width .35s var(--ease);
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+  .nav-cta { display: none; }
+  .menu-btn {
+    display: none; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text); cursor: pointer; place-items: center;
+  }
+  .menu-btn span { display: block; width: 18px; height: 2px; background: currentColor; border-radius: 2px; position: relative; transition: transform .3s var(--ease), background .2s; }
+  .menu-btn span::before, .menu-btn span::after { content: ""; position: absolute; left: 0; width: 100%; height: 2px; background: currentColor; border-radius: 2px; transition: transform .3s var(--ease); }
+  .menu-btn span::before { top: -6px; }
+  .menu-btn span::after { top: 6px; }
+  .nav.open .menu-btn span { background: transparent; }
+  .nav.open .menu-btn span::before { transform: translateY(6px) rotate(45deg); }
+  .nav.open .menu-btn span::after { transform: translateY(-6px) rotate(-45deg); }
+
+  @media (max-width: 860px) {
+    .menu-btn { display: grid; }
+    .nav-links {
+      position: fixed; top: var(--nav-h); left: 0; right: 0; bottom: 0;
+      flex-direction: column; align-items: stretch; gap: 0; padding: 12px var(--gutter) 32px;
+      background: rgba(7,8,11,.97); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      transform: translateY(-8px); opacity: 0; visibility: hidden;
+      transition: opacity .3s, transform .4s var(--ease), visibility .3s;
+      overflow-y: auto;
+    }
+    .nav.open .nav-links { opacity: 1; transform: none; visibility: visible; }
+    .nav-links li { border-bottom: 1px solid var(--line); }
+    .nav-links a { display: flex; justify-content: space-between; align-items: center; font-size: 1.25rem; padding: 18px 4px; color: var(--text); }
+    .nav-links a::after { display: none; }
+    .nav-links a::before { content: "→"; color: var(--accent); opacity: .6; order: 2; }
+    .nav-cta { display: none; }
+  }
+  @media (min-width: 861px) {
+    .nav-cta { display: inline-flex; }
+    .nav-links li.mobile-only { display: none; }
+  }
+
+  /* ============ Buttons ============ */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 48px; padding: 12px 24px; border-radius: 999px;
+    font-weight: 600; font-size: .95rem; line-height: 1.2; text-align: center;
+    border: 1px solid var(--line-2); background: var(--panel); color: var(--text);
+    cursor: pointer; transition: transform .3s var(--ease), box-shadow .3s, background .3s, border-color .3s, color .3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: var(--accent); color: #05060a; border-color: transparent; }
+  .btn.primary:hover { background: #95b0ff; }
+  .btn.discord-btn { background: #5865f2; color: #fff; border-color: transparent; }
+  @media (hover: hover) {
+    .btn:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 12px 32px -12px var(--glow); }
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  /* ============ Reveal ============ */
+  .reveal { opacity: 0; transform: translateY(32px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal.d1 { transition-delay: .08s; }
+  .reveal.d2 { transition-delay: .16s; }
+  .reveal.d3 { transition-delay: .24s; }
+
+  /* ============ Hero ============ */
+  .hero { min-height: 100svh; display: flex; align-items: center; padding-top: calc(var(--nav-h) + 40px); padding-bottom: 72px; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr); gap: clamp(40px, 5vw, 80px); align-items: center; width: 100%; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 10px; font-size: .82rem; color: var(--muted);
+    border: 1px solid var(--line); background: rgba(255,255,255,.02); padding: 7px 14px 7px 8px; border-radius: 999px; margin-bottom: 24px;
+  }
+  .hero-badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 12px var(--accent-2); }
+  .hero h1 { margin-bottom: 20px; }
+  .typed { color: var(--muted); font-size: clamp(1rem, .95rem + .4vw, 1.3rem); min-height: 2em; margin-bottom: 32px; }
+  .typed::after { content: "|"; margin-left: 4px; color: var(--accent); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .hero-visual { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 520px; justify-self: center; }
+  .hero-visual .orb { position: absolute; border-radius: 50%; filter: blur(2px); }
+  .orb-a { inset: 12% 8% 14% 16%; background: radial-gradient(circle at 35% 35%, #6f8dff, #1a2250 60%, transparent 72%); opacity: .85; animation: drift 9s ease-in-out infinite; }
+  .orb-b { width: 34%; aspect-ratio: 1; right: 4%; bottom: 8%; background: radial-gradient(circle at 40% 40%, #5fe8c4, #0d3b33 60%, transparent 70%); opacity: .8; animation: drift 11s ease-in-out infinite reverse; }
+  .ring {
+    position: absolute; inset: 6%; border-radius: 50%;
+    border: 1px solid var(--line-2);
+    background: conic-gradient(from 0deg, transparent 0 70%, rgba(124,156,255,.7) 80%, transparent 90%);
+    -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%, #000 64%, transparent 65%);
+            mask: radial-gradient(circle, transparent 62%, #000 63%, #000 64%, transparent 65%);
+    animation: spin 14s linear infinite;
+  }
+  .ring.r2 { inset: 22%; background: conic-gradient(from 180deg, transparent 0 75%, rgba(61,217,176,.7) 85%, transparent 92%); animation-duration: 20s; animation-direction: reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes drift { 50% { transform: translate(14px, -18px); } }
+  .float-card {
+    position: absolute; max-width: 80%; padding: 12px 14px; border-radius: var(--radius-sm);
+    background: rgba(17,20,27,.85); border: 1px solid var(--line-2);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 20px 50px -20px rgba(0,0,0,.6);
+    font-family: "JetBrains Mono", Consolas, monospace; font-size: clamp(.68rem, .6rem + .3vw, .8rem); color: #c9d1e0; white-space: nowrap;
+    animation: bob 6s ease-in-out infinite;
+  }
+  .float-card b { color: var(--accent); font-weight: 500; }
+  .float-card em { color: var(--accent-2); font-style: normal; }
+  .fc-1 { top: 12%; left: -2%; }
+  .fc-2 { bottom: 10%; right: -2%; animation-delay: -3s; }
+  @keyframes bob { 50% { transform: translateY(-10px); } }
+
+  /* ============ Stats & tech strip ============ */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+    border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(160deg, var(--panel), var(--bg-2));
+    overflow: hidden;
+  }
+  .stat { padding: clamp(22px, 3vw, 36px); border-left: 1px solid var(--line); }
+  .stat:first-child { border-left: 0; }
+  .stat strong { display: block; font-size: clamp(1.4rem, 1rem + 1.4vw, 2.2rem); font-weight: 800; letter-spacing: -.02em; }
+  .stat span { color: var(--muted); font-size: .88rem; }
+
+  .marquee-wrap { overflow: hidden; margin-top: clamp(40px, 6vw, 64px); -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+  .marquee-label { text-align: center; font-size: .78rem; text-transform: uppercase; letter-spacing: .2em; color: var(--muted); margin-bottom: 20px; }
+  .marquee { display: flex; gap: 14px; width: max-content; animation: marquee 32s linear infinite; }
+  .marquee:hover { animation-play-state: paused; }
+  .marquee span {
+    flex: none; padding: 10px 20px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--muted); font-size: .9rem; white-space: nowrap;
+  }
+  @keyframes marquee { to { transform: translateX(calc(-50% - 7px)); } }
+
+  /* ============ About ============ */
+  .split { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); gap: clamp(40px, 6vw, 80px); align-items: center; }
+  .about-card {
+    background: linear-gradient(160deg, var(--panel), var(--bg-2));
+    border: 1px solid var(--line); border-radius: var(--radius); padding: clamp(22px, 3vw, 34px);
+  }
+  .about-card ul { list-style: none; display: grid; gap: 14px; }
+  .about-card li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+  .about-card li span:first-child { color: var(--muted); font-size: .9rem; }
+  .about-card li span:last-child { text-align: right; font-weight: 600; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .tag {
+    font-size: .8rem; padding: 6px 12px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted); background: rgba(255,255,255,.02); white-space: nowrap;
+  }
+
+  /* ============ Services ============ */
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: clamp(14px, 2vw, 22px); }
+  .card {
+    position: relative; overflow: hidden; isolation: isolate;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: clamp(24px, 3vw, 32px); transition: transform .4s var(--ease), border-color .4s;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .4s;
+    background: radial-gradient(420px circle at var(--mx,50%) var(--my,50%), var(--glow), transparent 45%);
+  }
+  @media (hover: hover) {
+    .card:hover { transform: translateY(-6px); border-color: rgba(124,156,255,.4); }
+    .card:hover::before { opacity: 1; }
+  }
+  .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .card-icon {
+    width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center;
+    background: rgba(124,156,255,.12); color: var(--accent); font-size: 1.25rem;
+  }
+  .card-num { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: .1em; }
+  .card p { color: var(--muted); font-size: .95rem; }
+
+  /* ============ Work (coming soon) ============ */
+  .soon {
+    position: relative; overflow: hidden; text-align: center;
+    border: 1px dashed var(--line-2); border-radius: 24px; padding: clamp(48px, 8vw, 96px) clamp(20px, 4vw, 48px);
+    background: radial-gradient(600px circle at 50% 0%, rgba(124,156,255,.14), transparent 60%), var(--bg-2);
+  }
+  .soon h3 { font-size: clamp(1.8rem, 1rem + 3vw, 3rem); margin-bottom: 12px; }
+  .soon p { color: var(--muted); max-width: 52ch; margin: 0 auto; }
+  .soon .pulse { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 22px; color: var(--accent-2); font-size: .85rem; text-transform: uppercase; letter-spacing: .16em; }
+  .soon .pulse::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 0 rgba(61,217,176,.6); animation: ping 2s infinite; }
+  @keyframes ping { 70% { box-shadow: 0 0 0 12px rgba(61,217,176,0); } 100% { box-shadow: 0 0 0 0 rgba(61,217,176,0); } }
+
+  /* ============ Modules ============ */
+  .modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px; }
+
+  /* ============ Groups ============ */
+  .group-card {
+    display: grid; grid-template-columns: minmax(0,1fr) auto; gap: clamp(24px, 4vw, 40px); align-items: center;
+    background: linear-gradient(135deg, var(--panel), var(--bg-2));
+    border: 1px solid var(--line); border-radius: 20px; padding: clamp(26px, 4vw, 44px);
+    transition: border-color .4s, transform .4s var(--ease);
+  }
+  @media (hover: hover) { .group-card:hover { border-color: rgba(124,156,255,.4); transform: translateY(-4px); } }
+  .group-icon {
+    width: clamp(56px, 6vw, 72px); height: clamp(56px, 6vw, 72px); border-radius: 18px; display: grid; place-items: center;
+    background: rgba(124,156,255,.12); color: var(--accent); font-size: 2rem; margin-bottom: 18px;
+  }
+  .group-card h3 { font-size: clamp(1.4rem, 1rem + 1.2vw, 1.9rem); margin-bottom: 8px; }
+  .role-pill {
+    display: inline-block; margin-top: 16px; font-size: .75rem; text-transform: uppercase; letter-spacing: .14em;
+    color: var(--accent); border: 1px solid rgba(124,156,255,.35); padding: 5px 12px; border-radius: 999px;
+  }
+  .group-actions { display: grid; gap: 12px; min-width: 240px; }
+
+  /* ============ GitHub ============ */
+  .gh { position: relative; overflow: hidden; isolation: isolate; }
+  .gh-bg {
+    position: absolute; inset: -20% -10%; z-index: -1; pointer-events: none; filter: blur(30px);
+    background:
+      radial-gradient(40% 40% at 20% 20%, rgba(124,156,255,.28), transparent 70%),
+      radial-gradient(35% 35% at 85% 70%, rgba(61,217,176,.2), transparent 70%);
+    animation: ghFloat 14s ease-in-out infinite alternate;
+  }
+  @keyframes ghFloat { to { transform: translate(-4%, 6%) scale(1.08); } }
+  .gh-title { font-size: clamp(3rem, 1rem + 9vw, 8.5rem); line-height: .92; letter-spacing: -.045em; margin-bottom: 20px; }
+  .gh-title .outline {
+    color: transparent; -webkit-text-stroke: 1.5px var(--accent);
+    background: linear-gradient(90deg, rgba(124,156,255,.18), rgba(61,217,176,.18));
+    -webkit-background-clip: text; background-clip: text;
+  }
+  .gh-profile {
+    display: grid; grid-template-columns: auto minmax(0,1fr) auto auto; gap: clamp(18px, 3vw, 28px); align-items: center;
+    margin-top: clamp(36px, 5vw, 56px); padding: clamp(20px, 3vw, 32px); border-radius: 22px;
+    border: 1px solid var(--line-2); background: rgba(17,20,27,.7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+  .gh-avatar {
+    position: relative; width: 88px; height: 88px; border-radius: 22px; overflow: hidden; flex: none;
+    display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: 1px solid var(--line-2);
+  }
+  .gh-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .gh-initials { font-size: 2rem; font-weight: 800; color: #05060a; }
+  .gh-id h3 { font-size: clamp(1.3rem, 1rem + .8vw, 1.8rem); }
+  .gh-handle { color: var(--muted); font-weight: 500; font-size: .6em; margin-left: 6px; }
+  .gh-id p { color: var(--muted); font-size: .93rem; margin-top: 8px; max-width: 60ch; }
+  .gh-status { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: .8rem; color: var(--accent-2); }
+  .gh-status i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 12px var(--accent-2); animation: ping 2s infinite; }
+  .gh-counts { display: flex; gap: clamp(16px, 2.5vw, 28px); }
+  .gh-counts strong { display: block; font-size: clamp(1.6rem, 1.2rem + 1vw, 2.2rem); font-weight: 800; line-height: 1.1; }
+  .gh-counts span { color: var(--muted); font-size: .8rem; }
+
+  .repo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: clamp(14px, 2vw, 20px); margin-top: 20px; }
+  .repo-wrap { perspective: 1200px; }
+  .repo {
+    position: relative; height: 100%; display: flex; flex-direction: column; gap: 14px; overflow: hidden;
+    padding: clamp(22px, 2.6vw, 28px); border-radius: 20px; border: 1px solid var(--line); min-height: 260px;
+    background: linear-gradient(160deg, var(--panel-2), var(--bg-2));
+    transform-style: preserve-3d; transition: transform .35s var(--ease), border-color .3s, box-shadow .3s;
+  }
+  .repo::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(320px circle at var(--gx, 50%) var(--gy, 0%), rgba(255,255,255,.12), transparent 45%);
+  }
+  .repo:hover::after { opacity: 1; }
+  .repo:hover { border-color: rgba(124,156,255,.45); box-shadow: 0 30px 60px -30px var(--glow); }
+  .repo-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .repo-icon {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none;
+    background: rgba(124,156,255,.12); color: var(--accent); font-family: "JetBrains Mono", Consolas, monospace; font-weight: 700;
+    transition: transform .4s var(--ease);
+  }
+  .repo:hover .repo-icon { transform: rotate(-8deg) scale(1.08); }
+  .repo h4 { font-size: clamp(1.15rem, 1rem + .5vw, 1.35rem); letter-spacing: -.02em; overflow-wrap: anywhere; }
+  .repo-sub { font-family: "JetBrains Mono", Consolas, monospace; font-size: .76rem; color: var(--muted); overflow-wrap: anywhere; }
+  .repo p { color: var(--muted); font-size: .93rem; flex: 1; }
+  .repo-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .repo-lang { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); }
+  .repo-lang i { width: 10px; height: 10px; border-radius: 50%; }
+  .repo-go { font-weight: 600; font-size: .9rem; color: var(--accent); transition: transform .3s var(--ease); }
+  .repo:hover .repo-go { transform: translateX(4px); }
+  .pinned { font-size: .68rem; text-transform: uppercase; letter-spacing: .14em; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(61,217,176,.4); color: var(--accent-2); white-space: nowrap; }
+
+  .gh-term { margin-top: clamp(20px, 3vw, 28px); border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #0a0c10; }
+  .term-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.02); }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+  .term-bar i:nth-child(2) { background: #febc2e; }
+  .term-bar i:nth-child(3) { background: #28c840; }
+  .term-bar span { margin-left: 10px; color: var(--muted); font-size: .8rem; font-family: "JetBrains Mono", Consolas, monospace; }
+  .gh-term pre { max-height: none; }
+  .pr { color: var(--accent-2); }
+  .cur { display: inline-block; width: .6em; height: 1.1em; background: var(--accent); vertical-align: -.2em; animation: blink 1s steps(1) infinite; }
+  .gh-cta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+  /* ============ Code ============ */
+  .code-wrap { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .code-wrap::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 2;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent));
+    background-size: 200% 100%; animation: shine 4s linear infinite;
+  }
+  .code-tabs {
+    display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,.02); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .code-tabs::-webkit-scrollbar { display: none; }
+  .code-tab {
+    flex: none; font-size: .85rem; color: var(--muted); background: none; border: 1px solid transparent;
+    padding: 8px 14px; border-radius: 10px; cursor: pointer; white-space: nowrap;
+    transition: color .3s, background .3s, border-color .3s, transform .3s var(--ease);
+  }
+  @media (hover: hover) { .code-tab:hover { color: var(--text); transform: translateY(-2px); } }
+  .code-tab.active { color: var(--text); background: rgba(124,156,255,.14); border-color: rgba(124,156,255,.35); box-shadow: 0 8px 20px -10px var(--glow); }
+  .code-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px clamp(14px, 2.5vw, 22px); border-bottom: 1px solid var(--line);
+  }
+  .code-title { display: flex; align-items: center; gap: 10px; font-family: "JetBrains Mono", Consolas, monospace; font-size: .88rem; color: var(--muted); min-width: 0; }
+  .code-title .file-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); flex: none; }
+  .code-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .copy-btn { position: relative; overflow: hidden; min-height: 40px; padding: 8px 16px; font-size: .85rem; }
+  .copy-btn::after {
+    content: ""; position: absolute; top: 0; left: -75%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-20deg);
+  }
+  @media (hover: hover) { .copy-btn:hover::after { animation: sweep .9s var(--ease); } }
+  @keyframes sweep { to { left: 125%; } }
+
+  .snip { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .snip-code { min-width: 0; background: #0a0c10; border-right: 1px solid var(--line); }
+  .snip-code pre { max-height: min(640px, 72svh); padding: 14px 0; }
+  .snip-code code { display: block; min-width: max-content; }
+  .ln {
+    display: flex; gap: 16px; min-width: max-content; padding-inline: 12px 24px 0 0; margin-inline: 0;
+    border-left: 2px solid transparent; transition: background .25s, border-color .25s, transform .25s var(--ease);
+  }
+  .ln .no { flex: none; width: 2.6em; text-align: right; color: #3b4252; user-select: none; font-variant-numeric: tabular-nums; padding-left: 10px; transition: color .25s; }
+  .ln .tx { white-space: pre; }
+  .ln.hl { background: linear-gradient(90deg, rgba(124,156,255,.16), rgba(124,156,255,.02)); border-left-color: var(--accent); transform: translateX(4px); }
+  .ln.hl .no { color: var(--accent); }
+  @media (hover: hover) { .ln:hover { background: rgba(255,255,255,.035); } }
+  .k { color: #c792ea; }
+  .s { color: #c3e88d; }
+  .c { color: #5c6370; font-style: italic; }
+  .n { color: #f78c6c; }
+  .b { color: #82aaff; }
+  .t { color: #7fdbca; }
+
+  .snip-notes {
+    display: grid; align-content: start; gap: 12px; padding: clamp(14px, 2vw, 20px); max-height: min(640px, 72svh); overflow: auto;
+    background: linear-gradient(180deg, var(--panel), var(--bg-2)); scrollbar-width: thin; scrollbar-color: var(--line-2) transparent;
+  }
+  .note {
+    position: relative; padding: 16px 18px 16px 20px; border-radius: 14px; border: 1px solid var(--line);
+    background: rgba(255,255,255,.02); cursor: pointer; outline: none;
+    transition: transform .35s var(--ease), border-color .35s, box-shadow .35s, background .35s;
+  }
+  .note::before {
+    content: ""; position: absolute; left: -1px; top: 14px; bottom: 14px; width: 2px; border-radius: 2px;
+    background: linear-gradient(var(--accent), var(--accent-2)); transform: scaleY(0); transition: transform .35s var(--ease);
+  }
+  @media (hover: hover) { .note:hover { transform: translateX(6px); border-color: rgba(124,156,255,.4); } }
+  .note.active, .note:focus-visible { transform: translateX(6px); border-color: rgba(124,156,255,.5); background: rgba(124,156,255,.08); box-shadow: 0 16px 40px -22px var(--glow); }
+  .note.active::before { transform: scaleY(1); }
+  .note .idx {
+    display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; margin-bottom: 10px;
+    background: rgba(124,156,255,.15); color: var(--accent); font-size: .78rem; font-weight: 700;
+  }
+  .note h4 { font-size: .98rem; margin-bottom: 6px; letter-spacing: -.01em; }
+  .note p { color: var(--muted); font-size: .88rem; line-height: 1.6; }
+  .note .range { margin-top: 10px; font-family: "JetBrains Mono", Consolas, monospace; font-size: .72rem; color: var(--accent-2); }
+
+  .code-meta { display: flex; gap: 10px; flex-wrap: wrap; padding: 12px clamp(14px, 2.5vw, 22px); border-top: 1px solid var(--line); }
+  .code-meta .hint { color: var(--muted); font-size: .8rem; margin-left: auto; align-self: center; }
+
+  /* ============ Contact ============ */
+  form { display: grid; gap: 16px; }
+  .field { display: grid; gap: 8px; }
+  label { font-size: .85rem; color: var(--muted); }
+  input, textarea {
+    width: 100%; color: var(--text); background: var(--panel);
+    border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px 16px; outline: none;
+    font-size: 16px; /* prevents iOS zoom */
+    transition: border-color .3s, box-shadow .3s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--glow); }
+  textarea { min-height: 150px; resize: vertical; }
+  .contact-info { display: grid; gap: 14px; margin-top: 36px; }
+  .contact-info a {
+    display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: var(--radius-sm);
+    background: var(--panel); border: 1px solid var(--line); transition: border-color .3s, transform .3s var(--ease);
+    cursor: pointer; min-width: 0;
+  }
+  .contact-info a > span:first-child {
+    flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    background: rgba(124,156,255,.12); color: var(--accent);
+  }
+  .contact-info a > div { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+  .contact-info small { color: var(--muted); display: block; font-size: .8rem; font-weight: 400; }
+  @media (hover: hover) { .contact-info a:hover { border-color: var(--accent); transform: translateX(6px); } }
+  .sent { color: var(--accent-2); font-size: .9rem; min-height: 1.2em; }
+
+  /* ============ Footer ============ */
+  footer { border-top: 1px solid var(--line); }
+  .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; padding-block: clamp(40px, 6vw, 64px); }
+  .footer-grid h4 { font-size: .8rem; text-transform: uppercase; letter-spacing: .16em; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+  .footer-grid ul { list-style: none; display: grid; gap: 10px; }
+  .footer-grid a { color: var(--text); font-size: .93rem; opacity: .85; transition: opacity .2s, color .2s; }
+  .footer-grid a:hover { opacity: 1; color: var(--accent); }
+  .footer-brand p { color: var(--muted); font-size: .92rem; max-width: 36ch; margin-top: 10px; }
+  .footer-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-block: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+
+  /* ============ Responsive ============ */
+  @media (max-width: 1024px) {
+    .hero-grid, .split { grid-template-columns: minmax(0,1fr); }
+    .hero-visual { max-width: 440px; order: 2; margin-top: 8px; }
+    .hero { padding-bottom: 56px; }
+    .hero-copy { text-align: left; }
+    .group-card { grid-template-columns: minmax(0,1fr); }
+    .group-actions { min-width: 0; }
+  }
+  @media (max-width: 720px) {
+    .stats-bar { grid-template-columns: 1fr; }
+    .stat { border-left: 0; border-top: 1px solid var(--line); }
+    .stat:first-child { border-top: 0; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand { grid-column: 1 / -1; }
+    .fc-1 { left: 0; } .fc-2 { right: 0; }
+    .float-card { font-size: .68rem; white-space: normal; max-width: 68%; }
+    .btn-row .btn { flex: 1 1 100%; }
+  }
+  @media (max-width: 420px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .hero-visual { max-width: 100%; }
+    .float-card { display: none; }
+  }
+  @media (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
+    .hero { min-height: auto; }
+  }
+
+  /* ---- Snippets + GitHub responsive ---- */
+  @media (max-width: 900px) {
+    .snip { grid-template-columns: minmax(0, 1fr); }
+    .snip-code { border-right: 0; border-bottom: 1px solid var(--line); }
+    .snip-code pre { max-height: 60vh; }
+    .snip-notes { max-height: none; overflow: visible; padding: 16px; }
+    .gh-profile { grid-template-columns: auto minmax(0, 1fr); }
+    .gh-counts { grid-column: 1 / -1; }
+    .gh-profile .btn { grid-column: 1 / -1; justify-self: stretch; }
+  }
+  @media (max-width: 520px) {
+    .gh-profile { grid-template-columns: minmax(0, 1fr); text-align: left; }
+    .gh-avatar { width: 72px; height: 72px; border-radius: 18px; }
+    .gh-counts > div { flex: 1; }
+    .code-head { padding: 12px 14px; }
+    .code-tools .copy-btn { width: 100%; }
+    .code-meta .hint { display: none; }
+    .ln { gap: 10px; }
+    .ln .no { width: 2em; }
+    .note { padding: 14px 14px 14px 18px; }
+    .note h4 { font-size: .95rem; }
+    .repo { min-height: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    .reveal { opacity: 1; transform: none; }
+    .marquee { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="intro" aria-hidden="true">
+  <div>
+    <div class="intro-mark">Ctrl<span>.</span>dev</div>
+    <div class="intro-bar"></div>
+  </div>
+</div>
+
+<div class="theme-bg" id="themeBg" aria-hidden="true"></div>
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="bg-glow" id="glow" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="container">
+    <a href="#home" class="logo" aria-label="Ctrl home">Ctrl<span>.</span>dev</a>
+    <nav aria-label="Primary">
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#about">About</a></li>
+        <li><a href="#github">GitHub</a></li>
+        <li><a href="#code">Code</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#groups">Groups</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#work">Work</a></li>
+      </ul>
+    </nav>
+    <div style="display:flex; align-items:center; gap:12px">
+      <a href="#contact" class="btn primary nav-cta" style="min-height:40px; padding:9px 18px; font-size:.88rem">Start a project</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Hero -->
+  <section id="home" class="hero" data-theme="home">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="hero-badge reveal"><i></i>Open to new projects</div>
+        <h1 class="reveal d1">Building systems <span class="gradient-text">that run</span> under the hood.</h1>
+        <p class="typed" id="typed"></p>
+        <div class="btn-row reveal d2">
+          <a href="#work" class="btn primary">View my work</a>
+          <a href="#contact" class="btn">Get in touch</a>
+        </div>
+      </div>
+
+      <div class="hero-visual reveal d2" aria-hidden="true">
+        <div class="orb orb-a"></div>
+        <div class="orb orb-b"></div>
+        <div class="ring"></div>
+        <div class="ring r2"></div>
+        <div class="float-card fc-1"><b>local</b> trove = Trove.<b>new</b>()<br>trove:<b>AttachToInstance</b>(char)</div>
+        <div class="float-card fc-2"><em>✓</em> state &rarr; <b>UI</b> synced<br><em>✓</em> data reconciled</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats + tech strip -->
+  <section class="section" style="padding-top:0" data-theme="home">
+    <div class="container">
+      <div class="stats-bar reveal">
+        <div class="stat"><strong>Several years</strong><span>Roblox development experience</span></div>
+        <div class="stat"><strong>Roblox</strong><span>Primary platform</span></div>
+        <div class="stat"><strong>Full stack</strong><span>Game, UI, data and web</span></div>
+      </div>
+    </div>
+    <div class="marquee-wrap reveal" aria-label="Technologies">
+      <p class="marquee-label">Built with</p>
+      <div class="marquee">
+        <span>Luau</span><span>Strict typing</span><span>Fusion</span><span>Roact</span><span>ProfileService</span><span>Trove</span><span>Promise</span><span>HTML</span><span>CSS</span><span>JavaScript</span>
+        <span>Luau</span><span>Strict typing</span><span>Fusion</span><span>Roact</span><span>ProfileService</span><span>Trove</span><span>Promise</span><span>HTML</span><span>CSS</span><span>JavaScript</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="section" data-theme="about">
+    <div class="container split">
+      <div class="reveal">
+        <span class="eyebrow">About</span>
+        <h2>I write clean code, and I build the tools that keep projects stable.</h2>
+        <p class="lead">I'm Ctrl, a Roblox developer with several years of experience. I focus on the systems behind a game: data that saves reliably, UI that stays in sync with state, and memory that gets cleaned up properly. I'm now expanding into web development.</p>
+        <div class="tags">
+          <span class="tag">Luau</span><span class="tag">Strict typing</span><span class="tag">Fusion</span>
+          <span class="tag">Roact</span><span class="tag">ProfileService</span><span class="tag">Data architecture</span>
+          <span class="tag">HTML / CSS / JS</span>
+        </div>
+      </div>
+      <div class="about-card reveal d2">
+        <ul>
+          <li><span>Based in</span><span>US</span></li>
+          <li><span>Main focus</span><span>Roblox game systems</span></li>
+          <li><span>Currently learning</span><span>Web development</span></li>
+          <li><span>Next build</span><span>N/A</span></li>
+          <li><span>Availability</span><span>Open to projects</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- GitHub -->
+  <section id="github" class="section gh" data-theme="github">
+    <div class="gh-bg" aria-hidden="true"></div>
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">GitHub</span>
+        <h2 class="gh-title">Open <span class="outline">source.</span></h2>
+        <p class="lead">Tools I build and publish on GitHub, from a Discord moderation bot to a chess engine and a Windows Spotify app.</p>
+      </div>
+
+      <div class="gh-profile reveal d1">
+        <div class="gh-avatar">
+          <span class="gh-initials" aria-hidden="true">C</span>
+          <img src="https://github.com/BucketSe.png" alt="BucketSe GitHub avatar" loading="lazy" onerror="this.remove()">
+        </div>
+        <div class="gh-id">
+          <h3>Ctrl<span class="gh-handle">@BucketSe</span></h3>
+          <p>Building practical tools people actually run, including Windows desktop apps, a from-scratch chess engine, and self-learning Discord moderation.</p>
+          <div class="gh-status"><i></i>Focusing</div>
+        </div>
+        <div class="gh-counts">
+          <div><strong>7</strong><span>Public repos</span></div>
+          <div><strong>3</strong><span>Featured</span></div>
+        </div>
+        <a href="https://github.com/BucketSe" class="btn primary" target="_blank" rel="noopener">View profile</a>
+      </div>
+
+      <div class="repo-grid">
+        <div class="repo-wrap reveal">
+          <a class="repo" href="https://github.com/BucketSe/Spotify-Blocker" target="_blank" rel="noopener">
+            <div class="repo-top">
+              <div class="repo-icon">♫</div>
+              <span class="pinned">Pinned</span>
+            </div>
+            <div>
+              <h4>Ad Guard for Spotify</h4>
+              <div class="repo-sub">BucketSe/Spotify-Blocker</div>
+            </div>
+            <p>Windows app that automatically mutes or skips Spotify ads.</p>
+            <div class="repo-foot">
+              <span class="repo-lang"><i style="background:#3572A5"></i>Python</span>
+              <span class="repo-go">Open repo →</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="repo-wrap reveal d1">
+          <a class="repo" href="https://github.com/BucketSe/ChessAi" target="_blank" rel="noopener">
+            <div class="repo-top">
+              <div class="repo-icon">♞</div>
+            </div>
+            <div>
+              <h4>ChessAi</h4>
+              <div class="repo-sub">BucketSe/ChessAi</div>
+            </div>
+            <p>Desktop chess analysis board with Stockfish 19 and a custom chess engine written in C++.</p>
+            <div class="repo-foot">
+              <span class="repo-lang"><i style="background:#f34b7d"></i>C++</span>
+              <span class="repo-go">Open repo →</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="repo-wrap reveal d2">
+          <a class="repo" href="https://github.com/BucketSe/ByteDog" target="_blank" rel="noopener">
+            <div class="repo-top">
+              <div class="repo-icon">⚑</div>
+            </div>
+            <div>
+              <h4>ByteDog</h4>
+              <div class="repo-sub">BucketSe/ByteDog</div>
+            </div>
+            <p>A self-learning Discord bot that detects scam images and malicious files using OCR and QR decoding.</p>
+            <div class="repo-foot">
+              <span class="repo-lang"><i style="background:#3572A5"></i>Python</span>
+              <span class="repo-go">Open repo →</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="gh-term reveal">
+        <div class="term-bar"><i></i><i></i><i></i><span>~/github</span></div>
+        <pre><code><span class="pr">$</span> <span id="termText"></span><span class="cur"></span></code></pre>
+      </div>
+
+      <div class="gh-cta reveal">
+        <a href="https://github.com/BucketSe" class="btn primary" target="_blank" rel="noopener">Visit GitHub profile</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code snippets -->
+  <section id="code" class="section" data-theme="code">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Code</span>
+        <h2>Code snippets.</h2>
+        <p class="lead">Production-style Luau, annotated block by block. Hover a note to light up its lines, or hover a line to find its explanation. On touch, tap a note to pin it.</p>
+      </div>
+
+      <div class="code-wrap reveal d1">
+        <div class="code-tabs" role="tablist" aria-label="Code snippets">
+          <button class="code-tab active" data-tab="ui" role="tab" aria-selected="true">UIManager</button>
+          <button class="code-tab" data-tab="data" role="tab" aria-selected="false">HeroData</button>
+          <button class="code-tab" data-tab="cleanup" role="tab" aria-selected="false">Trove cleanup</button>
+          <button class="code-tab" data-tab="signal" role="tab" aria-selected="false">Signal</button>
+          <button class="code-tab" data-tab="ability" role="tab" aria-selected="false">Ability server</button>
+          <button class="code-tab" data-tab="migrate" role="tab" aria-selected="false">Data migration</button>
+        </div>
+
+        <div class="code-head">
+          <div class="code-title"><span class="file-dot"></span><span id="codeFile">UIManager.lua</span></div>
+          <div class="code-tools">
+            <button class="btn copy-btn" id="copyBtn">Copy code</button>
+          </div>
+        </div>
+
+        <div class="snip">
+          <div class="snip-code"><pre><code id="codeEl"></code></pre></div>
+          <div class="snip-notes" id="notesEl"></div>
+        </div>
+
+        <div class="code-meta">
+          <span class="tag">Luau</span><span class="tag">Strict mode</span><span class="tag" id="codeLib">No dependencies</span>
+          <span class="hint">Hover or tap a note to explore</span>
+        </div>
+      </div>
+    </div>
+
+<script type="text/plain" id="src-ui">--!strict
+-- UIManager: one authority for which ScreenGui is visible.
+-- Screens register once. Everything else only calls show, hide or toggle.
+
+local UIManager = {}
+
+type Screen = {
+	gui: ScreenGui,
+	persistent: boolean,
+}
+
+local screens: { [string]: Screen } = {}
+local activeName: string? = nil
+
+local function warnMissing(name: string)
+	warn(`[UIManager] No screen registered as "{name}"`)
+end
+
+function UIManager.register(name: string, gui: ScreenGui, persistent: boolean?)
+	assert(screens[name] == nil, `[UIManager] "{name}" is already registered`)
+
+	local isPersistent = persistent == true
+	screens[name] = { gui = gui, persistent = isPersistent }
+	gui.Enabled = isPersistent
+end
+
+function UIManager.show(name: string)
+	local screen = screens[name]
+	if not screen then
+		warnMissing(name)
+		return
+	end
+
+	-- Only one non-persistent screen is open at a time.
+	if not screen.persistent and activeName and activeName ~= name then
+		screens[activeName].gui.Enabled = false
+	end
+
+	screen.gui.Enabled = true
+	if not screen.persistent then
+		activeName = name
+	end
+end
+
+function UIManager.hide(name: string)
+	local screen = screens[name]
+	if not screen then
+		warnMissing(name)
+		return
+	end
+
+	screen.gui.Enabled = false
+	if activeName == name then
+		activeName = nil
+	end
+end
+
+function UIManager.toggle(name: string)
+	local screen = screens[name]
+	if screen and screen.gui.Enabled then
+		UIManager.hide(name)
+	else
+		UIManager.show(name)
+	end
+end
+
+function UIManager.current(): string?
+	return activeName
+end
+
+return UIManager
+</script>
+<script type="text/plain" id="src-data">--!strict
+-- HeroData: the single source of truth for every hero.
+-- UI, abilities, weapons and cooldowns read from here. Nothing else hardcodes stats.
+
+export type Role = "Assassin" | "Tank" | "Support" | "Carry" | "Jungler"
+
+export type Ability = {
+	name: string,
+	description: string,
+	cooldown: number,       -- seconds
+	isUltimate: boolean,
+	icon: string?,
+}
+
+export type Weapon = {
+	fireRate: number,       -- seconds between shots
+	spread: number,
+	range: number,
+	recoil: number,
+	magSize: number,
+	damagePerShot: number,
+	reloadTime: number,     -- seconds
+}
+
+export type Hero = {
+	id: string,
+	displayName: string,
+	role: Role,
+	description: string,
+	abilities: { Ability },
+	weapon: Weapon,
+}
+
+local heroes: { Hero } = {
+	{
+		id = "whisper",
+		displayName = "Whisper",
+		role = "Assassin",
+		description = "A silent, deadly hunter.",
+		abilities = {
+			{ name = "Unknown", description = "25s of invisibility. Footsteps and attacks are silenced.", cooldown = 25, isUltimate = false },
+			{ name = "Pump Fake", description = "Deploy a decoy to confuse enemies.", cooldown = 15, isUltimate = false },
+			{ name = "Alert", description = "Reveal an enemy's location.", cooldown = 10, isUltimate = false },
+			{ name = "Tunnel Vision", description = "See through walls and objects.", cooldown = 40, isUltimate = true },
+		},
+		weapon = {
+			fireRate = 0.02,
+			spread = 1,
+			range = 50,
+			recoil = 1,
+			magSize = 35,
+			damagePerShot = 5,
+			reloadTime = 2,
+		},
+	},
+}
+
+-- Freeze everything so no system can mutate shared hero data at runtime.
+local function deepFreeze(value: any)
+	if type(value) == "table" then
+		for _, child in value do
+			deepFreeze(child)
+		end
+		table.freeze(value)
+	end
+	return value
+end
+deepFreeze(heroes)
+
+-- Index once for O(1) lookups and reject duplicate IDs early.
+local byId: { [string]: Hero } = {}
+for _, hero in heroes do
+	assert(byId[hero.id] == nil, `[HeroData] Duplicate hero id: {hero.id}`)
+	byId[hero.id] = hero
+end
+
+local HeroData = {}
+
+function HeroData.get(id: string): Hero?
+	return byId[id]
+end
+
+function HeroData.all(): { Hero }
+	return heroes
+end
+
+function HeroData.byRole(role: Role): { Hero }
+	local result: { Hero } = {}
+	for _, hero in heroes do
+		if hero.role == role then
+			table.insert(result, hero)
+		end
+	end
+	return result
+end
+
+return table.freeze(HeroData)
+</script>
+<script type="text/plain" id="src-cleanup">--!strict
+-- Per-character cleanup with Trove.
+-- Everything a character creates (connections, instances, tasks) lives in one Trove
+-- and is destroyed the moment the character is removed or the player leaves.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Trove = require(ReplicatedStorage.Packages.Trove)
+
+type CharacterTrove = typeof(Trove.new())
+
+local playerTroves: { [Player]: CharacterTrove } = {}
+
+local function setupCharacter(player: Player, character: Model)
+	-- Release the previous character's resources before building new ones.
+	local previous = playerTroves[player]
+	if previous then
+		previous:Destroy()
+	end
+
+	local trove = Trove.new()
+	trove:AttachToInstance(character) -- auto-cleans when the character is removed
+	playerTroves[player] = trove
+
+	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
+
+	-- Tracked connection: disconnected automatically on cleanup.
+	trove:Connect(humanoid.Died, function()
+		print(`[Cleanup] {player.Name} died`)
+	end)
+
+	-- Tracked instance: destroyed automatically on cleanup.
+	local aura = Instance.new("Highlight")
+	aura.FillTransparency = 0.8
+	aura.Parent = character
+	trove:Add(aura)
+end
+
+local function onPlayerAdded(player: Player)
+	player.CharacterAdded:Connect(function(character)
+		setupCharacter(player, character)
+	end)
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+for _, player in Players:GetPlayers() do
+	onPlayerAdded(player)
+end
+
+Players.PlayerRemoving:Connect(function(player)
+	local trove = playerTroves[player]
+	if trove then
+		trove:Destroy()
+		playerTroves[player] = nil
+	end
+end)
+</script>
+<script type="text/plain" id="src-signal">--!strict
+-- Signal: a lightweight typed event.
+-- Handlers run on a snapshot, so connecting or disconnecting mid-Fire is safe.
+-- Each handler runs in its own thread, so one error cannot stop the others.
+
+export type Connection = {
+	Connected: boolean,
+	Disconnect: (self: Connection) -> (),
+}
+
+export type Signal<T> = {
+	Connect: (self: Signal<T>, handler: (T) -> ()) -> Connection,
+	Fire: (self: Signal<T>, value: T) -> (),
+	Destroy: (self: Signal<T>) -> (),
+}
+
+type Entry<T> = {
+	handler: (T) -> (),
+	connected: boolean,
+}
+
+local Signal = {}
+
+function Signal.new<T>(): Signal<T>
+	local entries: { Entry<T> } = {}
+	local signal = {} :: Signal<T>
+
+	function signal:Connect(handler: (T) -> ()): Connection
+		local entry: Entry<T> = { handler = handler, connected = true }
+		table.insert(entries, entry)
+
+		local connection = { Connected = true } :: Connection
+		function connection:Disconnect()
+			if not entry.connected then
+				return
+			end
+			entry.connected = false
+			connection.Connected = false
+
+			local index = table.find(entries, entry)
+			if index then
+				table.remove(entries, index)
+			end
+		end
+
+		return connection
+	end
+
+	function signal:Fire(value: T)
+		for _, entry in table.clone(entries) do
+			if entry.connected then
+				task.spawn(entry.handler, value)
+			end
+		end
+	end
+
+	function signal:Destroy()
+		for _, entry in entries do
+			entry.connected = false
+		end
+		table.clear(entries)
+	end
+
+	return signal
+end
+
+return Signal
+</script>
+<script type="text/plain" id="src-ability">--!strict
+-- AbilityService (server): every client request is treated as hostile.
+-- Cooldowns run on server time, and a token bucket rate-limits spam per player.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HeroData = require(ReplicatedStorage.Shared.HeroData)
+
+local UseAbility = ReplicatedStorage.Remotes.UseAbility :: RemoteEvent
+
+type Bucket = {
+	tokens: number,
+	lastRefill: number,
+}
+
+type PlayerState = {
+	heroId: string,
+	cooldowns: { [number]: number },
+	bucket: Bucket,
+}
+
+local BUCKET_CAPACITY = 5
+local REFILL_PER_SECOND = 2
+
+local states: { [Player]: PlayerState } = {}
+
+local function takeToken(bucket: Bucket, now: number): boolean
+	local elapsed = math.max(0, now - bucket.lastRefill)
+	bucket.tokens = math.min(BUCKET_CAPACITY, bucket.tokens + elapsed * REFILL_PER_SECOND)
+	bucket.lastRefill = now
+
+	if bucket.tokens < 1 then
+		return false
+	end
+	bucket.tokens -= 1
+	return true
+end
+
+local function onUseAbility(player: Player, slot: unknown)
+	local state = states[player]
+	if not state then
+		return
+	end
+
+	-- Validate the shape of the input before touching anything.
+	if type(slot) ~= "number" or slot % 1 ~= 0 then
+		return
+	end
+
+	local hero = HeroData.get(state.heroId)
+	if not hero then
+		return
+	end
+
+	local ability = hero.abilities[slot]
+	if not ability then
+		return
+	end
+
+	local now = workspace:GetServerTimeNow()
+	if not takeToken(state.bucket, now) then
+		return
+	end
+
+	-- Server time decides readiness, never the client.
+	if now < (state.cooldowns[slot] or 0) then
+		return
+	end
+
+	state.cooldowns[slot] = now + ability.cooldown
+	-- Apply the ability effect here, on the server.
+end
+
+Players.PlayerAdded:Connect(function(player)
+	states[player] = {
+		heroId = "whisper", -- loaded from the player's data in a real game
+		cooldowns = {},
+		bucket = { tokens = BUCKET_CAPACITY, lastRefill = workspace:GetServerTimeNow() },
+	}
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	states[player] = nil
+end)
+
+UseAbility.OnServerEvent:Connect(onUseAbility)
+</script>
+<script type="text/plain" id="src-migrate">--!strict
+-- Versioned data migrations plus deep reconciliation.
+-- Migrations run once per version step. Missing template fields are filled in
+-- without overwriting anything the player already has.
+
+type Data = { [string]: any }
+
+local TEMPLATE = {
+	version = 3,
+	coins = 0,
+	level = 1,
+	settings = { music = true, sfx = true },
+	inventory = {} :: { [string]: number },
+}
+
+local MIGRATIONS: { [number]: (Data) -> () } = {
+	-- v1 -> v2: "gold" was renamed to "coins".
+	[2] = function(data: Data)
+		if data.coins == nil and data.gold ~= nil then
+			data.coins = data.gold
+		end
+		data.gold = nil
+	end,
+
+	-- v2 -> v3: settings were added.
+	[3] = function(data: Data)
+		data.settings = data.settings or { music = true, sfx = true }
+	end,
+}
+
+local function deepCopy<T>(value: T): T
+	if type(value) ~= "table" then
+		return value
+	end
+
+	local copy = {}
+	for key, child in value :: any do
+		copy[key] = deepCopy(child)
+	end
+	return copy :: any
+end
+
+local function reconcile(data: Data, template: Data)
+	for key, default in template do
+		local current = data[key]
+		if current == nil then
+			data[key] = deepCopy(default)
+		elseif type(default) == "table" and type(current) == "table" then
+			reconcile(current, default)
+		end
+	end
+end
+
+local function migrate(data: Data): Data
+	local fromVersion = data.version or 1
+
+	for target = fromVersion + 1, TEMPLATE.version do
+		local step = MIGRATIONS[target]
+		if step then
+			step(data)
+		end
+	end
+
+	data.version = TEMPLATE.version
+	reconcile(data, TEMPLATE)
+	return data
+end
+
+return migrate
+</script>
+  </section>
+
+
+  <!-- Services -->
+  <section id="services" class="section" data-theme="services">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Services</span>
+        <h2>What I can build for you.</h2>
+        <p class="lead">From a single system to a full game or web app, I build with an emphasis on reliability and clean structure.</p>
+      </div>
+      <div class="services-grid">
+        <article class="card reveal">
+          <div class="card-top"><div class="card-icon">◈</div><span class="card-num">01</span></div>
+          <h3>Roblox Game Development</h3>
+          <p>Gameplay systems, combat, abilities, weapons and progression built to scale with your player count.</p>
+        </article>
+        <article class="card reveal d1">
+          <div class="card-top"><div class="card-icon">▣</div><span class="card-num">02</span></div>
+          <h3>UI &amp; UX Systems</h3>
+          <p>Reactive interfaces with Fusion or Roact, screen management and clean navigation that stays responsive.</p>
+        </article>
+        <article class="card reveal d2">
+          <div class="card-top"><div class="card-icon">⛁</div><span class="card-num">03</span></div>
+          <h3>Data &amp; Saving</h3>
+          <p>Player data with ProfileService, session locking, reconciliation and safe migrations, so progress is never lost.</p>
+        </article>
+        <article class="card reveal">
+          <div class="card-top"><div class="card-icon">⟨/⟩</div><span class="card-num">04</span></div>
+          <h3>Web Development</h3>
+          <p>Responsive landing pages, portfolios and small web apps built with modern HTML, CSS and JavaScript.</p>
+        </article>
+        <article class="card reveal d1">
+          <div class="card-top"><div class="card-icon">✦</div><span class="card-num">05</span></div>
+          <h3>Code Review &amp; Cleanup</h3>
+          <p>Memory leak audits, cleanup with Maid, Trove or Janitor, and refactoring toward strict types.</p>
+        </article>
+        <article class="card reveal d2">
+          <div class="card-top"><div class="card-icon">⬡</div><span class="card-num">06</span></div>
+          <h3>Systems Architecture</h3>
+          <p>Planning the data, state and module structure of a project before it grows, so it stays easy to change.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Groups -->
+  <section id="groups" class="section" data-theme="groups">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Groups</span>
+        <h2>Communities I help run.</h2>
+        <p class="lead">I'm a co-owner of this group. You can find the group and my profile below.</p>
+      </div>
+      <div class="group-card reveal d1">
+        <div>
+          <div class="group-icon">⬢</div>
+          <h3>Northcap Studios</h3>
+          <span class="role-pill">Co-owner</span>
+        </div>
+        <div class="group-actions">
+          <a href="https://www.roblox.com/communities/219960618/Northcap-Studios#!/about" class="btn primary" target="_blank" rel="noopener">View group on Roblox</a>
+          <a href="https://www.roblox.com/search/users?keyword=uziiv4t" class="btn" target="_blank" rel="noopener">Profile: uziiv4t</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="section" data-theme="contact">
+    <div class="container split">
+      <div class="reveal">
+        <span class="eyebrow">Contact</span>
+        <h2>Let's build something.</h2>
+        <p class="lead">Have a project, a game idea or a tool you need? Reach out on Roblox or send a message here.</p>
+        <div class="contact-info">
+          <a href="#" id="discordCard" role="button"><span>◉</span><div><small id="discordHint">Discord · click to copy my username</small>.faang</div></a>
+          <a href="https://www.roblox.com/search/users?keyword=uziiv4t" target="_blank" rel="noopener"><span>◆</span><div><small>Roblox</small>uziiv4t</div></a>
+        </div>
+      </div>
+      <form id="contactForm" class="reveal d1">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" required>
+        </div>
+        <div class="field">
+          <label for="msg">Message</label>
+          <textarea id="msg" name="msg" placeholder="Tell me about your project..." required></textarea>
+        </div>
+        <button class="btn primary" type="submit" style="justify-self:start">Send message</button>
+        <p class="sent" id="sent" role="status"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Work -->
+  <section id="work" class="section" data-theme="work">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Selected work</span>
+        <h2>Projects &amp; systems.</h2>
+      </div>
+      <div class="soon reveal d1">
+        <div class="pulse">In progress</div>
+        <h3>Coming soon.</h3>
+        <p>Projects and systems are being prepared for this section. Check back soon.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#home" class="logo">Ctrl<span>.</span>dev</a>
+        <p>Roblox game systems, reactive UI and data that never loses progress.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#code">Code</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="https://www.roblox.com/communities/219960618/Northcap-Studios#!/about" target="_blank" rel="noopener">Northcap Studios</a></li>
+          <li><a href="https://www.roblox.com/search/users?keyword=uziiv4t" target="_blank" rel="noopener">Roblox profile</a></li>
+          <li><a href="https://github.com/BucketSe" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Ctrl. All rights reserved.</span>
+      <span>Built with HTML, CSS &amp; JavaScript</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Intro
+  const intro = document.getElementById('intro');
+  window.addEventListener('load', () => setTimeout(() => intro.classList.add('done'), 1900));
+
+  // Typed text
+  const phrases = ['Roblox game systems.', 'data that never loses progress.', 'reactive UI.', 'web apps.'];
+  const typedEl = document.getElementById('typed');
+  let p = 0, c = 0, deleting = false;
+  function type() {
+    const word = phrases[p];
+    typedEl.textContent = deleting ? word.slice(0, c--) : word.slice(0, c++);
+    let delay = deleting ? 40 : 90;
+    if (!deleting && c === word.length + 1) { deleting = true; delay = 1600; }
+    else if (deleting && c === 0) { deleting = false; p = (p + 1) % phrases.length; delay = 300; }
+    setTimeout(type, delay);
+  }
+  setTimeout(type, 2200);
+
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Nav: scrolled state, scroll-spy
+  const nav = document.getElementById('nav');
+  const links = document.querySelectorAll('.nav-links a');
+  const sections = [...document.querySelectorAll('main section[id]')];
+  function onScroll() {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 200) current = s.id; });
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Mobile menu
+  const menuBtn = document.getElementById('menuBtn');
+  function setMenu(open) {
+    nav.classList.toggle('open', open);
+    menuBtn.setAttribute('aria-expanded', String(open));
+    menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  menuBtn.addEventListener('click', () => setMenu(!nav.classList.contains('open')));
+  links.forEach(a => a.addEventListener('click', () => setMenu(false)));
+  window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  // Cursor glow + card spotlight (pointer devices only)
+  const glow = document.getElementById('glow');
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    window.addEventListener('pointermove', (e) => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    }, { passive: true });
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('pointermove', (e) => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+    });
+  }
+
+  // ===== Code snippets: annotated, syntax-highlighted, linked to notes =====
+  const SNIPPETS = {
+    ui: { file: 'UIManager.lua', src: 'src-ui', lib: 'No dependencies', notes: [
+      { start: 'type Screen = {', end: '}', title: 'Typed screen record', text: "Every registered screen is a typed record: the ScreenGui plus a persistent flag. Strict types catch a wrong shape while you edit, not at runtime." },
+      { start: 'function UIManager.show', end: 'activeName = name', title: 'One authority in show', text: "Showing a screen hides the previous non-persistent one first, so two menus can never fight for the screen. Persistent HUD layers skip that rule." },
+      { start: 'function UIManager.hide', end: 'activeName = nil', title: 'Hide clears state safely', text: "Hiding only resets the active name when that screen was the one open, so hiding a background screen never clears the foreground." },
+    ]},
+    data: { file: 'HeroData.lua', src: 'src-data', lib: 'No dependencies', notes: [
+      { start: 'export type Role', end: 'weapon: Weapon,', title: 'Contracts first', text: "Types describe the shape of every hero before any data exists. A literal union for Role means a typo such as Assasin fails analysis instead of silently breaking a filter." },
+      { start: 'local heroes: { Hero }', end: 'reloadTime = 2,', title: 'Single source of truth', text: "Stats live in one table. The UI, abilities, weapons and cooldowns all read from it, so a balance change happens in exactly one place." },
+      { start: 'local function deepFreeze', end: 'deepFreeze(heroes)', title: 'Immutable at runtime', text: "Nested tables are frozen recursively. A bug that writes to shared hero data throws immediately instead of corrupting every later match." },
+      { start: 'local byId', end: 'byId[hero.id] = hero', title: 'Indexed lookups', text: "A dictionary index gives constant-time lookups and catches duplicate IDs at load, the moment someone copies a hero block." },
+    ]},
+    cleanup: { file: 'CharacterCleanup.lua', src: 'src-cleanup', lib: 'Requires Trove', notes: [
+      { start: 'local Trove = require', end: 'local Trove = require', title: 'Dependency', text: "Trove is loaded once. Every character gets its own Trove that owns everything the character creates." },
+      { start: 'local function setupCharacter', end: 'playerTroves[player] = trove', title: 'Replace, never stack', text: "The previous character's Trove is destroyed before the new one is built, so respawns can't pile up connections or leak references." },
+      { start: 'trove:AttachToInstance', end: 'trove:AttachToInstance', title: 'Lifetime tied to the model', text: "AttachToInstance ties the Trove's lifetime to the character model. When Roblox removes the character, cleanup runs automatically." },
+      { start: 'trove:Connect(humanoid.Died', end: 'end)', title: 'Tracked connection', text: "Connections added through the Trove disconnect on cleanup, so a Died handler can't keep firing against a character that no longer exists." },
+      { start: 'Players.PlayerRemoving:Connect', end: 'playerTroves[player] = nil', title: 'Final teardown', text: "When a player leaves, the Trove is destroyed and its table entry is cleared, so nothing keeps a reference to the player." },
+    ]},
+    signal: { file: 'Signal.lua', src: 'src-signal', lib: 'No dependencies', notes: [
+      { start: 'export type Connection', end: 'Disconnect: (self: Connection)', title: 'Typed handles', text: "Connection and Signal are exported generic types. Callers get compile-time checks on handler arguments." },
+      { start: 'function Signal.new', end: 'local signal = {} :: Signal<T>', title: 'Generic constructor', text: "Signal.new<T>() returns a fully typed object, so each event carries its own payload type without runtime checks." },
+      { start: 'function signal:Connect', end: 'return connection', title: 'Precise disconnect', text: "Each connection holds a reference to its own entry. Disconnect removes only that entry, and the flag prevents double disconnects." },
+      { start: 'function signal:Fire', end: 'task.spawn(entry.handler, value)', title: 'Snapshot firing', text: "Fire iterates a clone, so handlers can connect or disconnect mid-fire. Each handler runs in its own thread, so one error can't stop the rest." },
+      { start: 'function signal:Destroy', end: 'table.clear(entries)', title: 'Clean teardown', text: "Destroy marks every entry inactive before clearing, so any connection still held elsewhere becomes a safe no-op." },
+    ]},
+    ability: { file: 'AbilityService.server.lua', src: 'src-ability', lib: 'Server Script · Remotes', notes: [
+      { start: 'local UseAbility', end: 'local UseAbility', title: 'Typed remote', text: "The remote is cast to RemoteEvent once at load. The server never trusts what the client sends, so every argument is validated below." },
+      { start: 'local function takeToken', end: 'return true', title: 'Token bucket', text: "Each player gets a bucket that refills over time. Short bursts are allowed up to capacity, while sustained spam is rejected." },
+      { start: 'local function onUseAbility', end: 'if not takeToken', title: 'Validate before work', text: "Type, integer and range checks run before any state is read. Malformed or spoofed input is dropped right away." },
+      { start: '-- Server time decides', end: 'state.cooldowns[slot] = now + ability.cooldown', title: 'Server-authoritative cooldowns', text: "Readiness is judged against workspace:GetServerTimeNow(), so a client that changes its clock or floods requests gains nothing." },
+    ]},
+    migrate: { file: 'DataMigrate.lua', src: 'src-migrate', lib: 'No dependencies', notes: [
+      { start: 'local TEMPLATE', end: 'inventory = {}', title: 'Versioned template', text: "The template is the current schema. Its version number is the target every saved profile migrates toward." },
+      { start: '[2] = function', end: 'data.gold = nil', title: 'Explicit rename step', text: "Migrations are keyed by the version they produce. Renaming gold to coins copies the value, then removes the old key." },
+      { start: 'local function deepCopy', end: 'return copy :: any', title: 'Clone defaults', text: "Defaults are deep-copied, never shared, so one player's data can't leak into another's through a common table." },
+      { start: 'local function reconcile', end: 'reconcile(current, default)', title: 'Non-destructive reconcile', text: "Missing keys are filled from the template and existing values are never overwritten. Nested tables merge recursively." },
+      { start: 'local function migrate', end: 'reconcile(data, TEMPLATE)', title: 'Run once, stamp on save', text: "Only steps newer than the saved version run, and the version is written back, so a migration can't run twice on the same data." },
+    ]},
+  };
+
+  const codeEl = document.getElementById('codeEl');
+  const notesEl = document.getElementById('notesEl');
+  const fileEl = document.getElementById('codeFile');
+  const libEl = document.getElementById('codeLib');
+  const srcText = (id) => document.getElementById(id).textContent.replace(/^\n/, '').replace(/\n$/, '');
+
+  const KW = new Set(['and','break','do','else','elseif','end','export','false','for','function','if','in','local','nil','not','or','repeat','return','then','true','type','until','while','continue']);
+  const BI = new Set(['assert','warn','print','require','setmetatable','typeof','Instance','tostring','tonumber','pairs','ipairs','select','error','pcall','game','workspace','task','table','math','string','Enum','Players','ReplicatedStorage']);
+  const TY = new Set(['string','number','boolean','any','unknown','Player','Model','Humanoid','ScreenGui','RemoteEvent','Signal','Connection','Hero','Ability','Weapon','Role','Entry','Screen','Bucket','PlayerState','Data','CharacterTrove','Trove']);
+  const TOKEN = /(--[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`[^`\n]*`)|\b(\d+(?:\.\d+)?)\b|([A-Za-z_][A-Za-z0-9_]*)/g;
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  function highlightLine(line) {
+    let out = '', last = 0, m;
+    TOKEN.lastIndex = 0;
+    while ((m = TOKEN.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      const [tok, com, str, num, ident] = m;
+      if (com) out += `<span class="c">${esc(com)}</span>`;
+      else if (str) out += `<span class="s">${esc(str)}</span>`;
+      else if (num) out += `<span class="n">${num}</span>`;
+      else if (KW.has(ident)) out += `<span class="k">${ident}</span>`;
+      else if (BI.has(ident)) out += `<span class="b">${ident}</span>`;
+      else if (TY.has(ident)) out += `<span class="t">${ident}</span>`;
+      else out += ident;
+      last = m.index + tok.length;
+    }
+    return out + esc(line.slice(last));
+  }
+
+  // Resolve a note to a [startLine, endLine] range (0-based) using text anchors.
+  function resolveRange(lines, start, end) {
+    const s = lines.findIndex(l => l.includes(start));
+    if (s < 0) return null;
+    let e = s;
+    if (end) {
+      for (let i = s; i < lines.length; i++) { if (lines[i].includes(end)) { e = i; break; } }
+    }
+    return [s, e];
+  }
+
+  let ranges = [];
+  let pinned = null;
+  let current = 'ui';
+
+  function clearHL() {
+    codeEl.querySelectorAll('.ln.hl').forEach(l => l.classList.remove('hl'));
+    notesEl.querySelectorAll('.note.active').forEach(n => n.classList.remove('active'));
+  }
+  function activate(k) {
+    clearHL();
+    const r = ranges[k];
+    if (r) for (let i = r[0]; i <= r[1]; i++) codeEl.children[i] && codeEl.children[i].classList.add('hl');
+    notesEl.children[k] && notesEl.children[k].classList.add('active');
+  }
+
+  function render(key) {
+    const cfg = SNIPPETS[key];
+    const raw = srcText(cfg.src);
+    const lines = raw.split('\n');
+    ranges = cfg.notes.map(n => resolveRange(lines, n.start, n.end));
+    codeEl.innerHTML = lines.map((l, i) =>
+      `<div class="ln" data-i="${i}"><span class="no">${i + 1}</span><span class="tx">${highlightLine(l) || ' '}</span></div>`
+    ).join('');
+    notesEl.innerHTML = cfg.notes.map((n, k) => {
+      const r = ranges[k];
+      const where = r ? (r[0] === r[1] ? `Line ${r[0] + 1}` : `Lines ${r[0] + 1}–${r[1] + 1}`) : '';
+      return `<div class="note" tabindex="0" data-k="${k}"><span class="idx">${k + 1}</span><h4>${n.title}</h4><p>${n.text}</p><div class="range">${where}</div></div>`;
+    }).join('');
+    fileEl.textContent = cfg.file;
+    libEl.textContent = cfg.lib;
+    pinned = null;
+    clearHL();
+  }
+
+  notesEl.addEventListener('mouseover', (e) => {
+    if (pinned !== null) return;
+    const n = e.target.closest('.note'); if (n) activate(+n.dataset.k);
+  });
+  notesEl.addEventListener('mouseleave', () => { if (pinned === null) clearHL(); });
+  notesEl.addEventListener('focusin', (e) => {
+    if (pinned !== null) return;
+    const n = e.target.closest('.note'); if (n) activate(+n.dataset.k);
+  });
+  notesEl.addEventListener('focusout', () => { if (pinned === null) clearHL(); });
+  notesEl.addEventListener('click', (e) => {
+    const n = e.target.closest('.note'); if (!n) return;
+    const k = +n.dataset.k;
+    pinned = pinned === k ? null : k;
+    if (pinned === null) { clearHL(); return; }
+    activate(k);
+    if (window.matchMedia('(max-width: 900px)').matches && ranges[k]) {
+      codeEl.children[ranges[k][0]].scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  });
+  codeEl.addEventListener('mouseover', (e) => {
+    if (pinned !== null) return;
+    const ln = e.target.closest('.ln'); if (!ln) return;
+    const i = +ln.dataset.i;
+    const k = ranges.findIndex(r => r && i >= r[0] && i <= r[1]);
+    if (k >= 0) activate(k); else clearHL();
+  });
+  codeEl.addEventListener('mouseleave', () => { if (pinned === null) clearHL(); });
+
+  const tabs = document.querySelectorAll('.code-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      current = tab.dataset.tab;
+      tabs.forEach(t => { const on = t === tab; t.classList.toggle('active', on); t.setAttribute('aria-selected', String(on)); });
+      render(current);
+      tab.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    });
+  });
+  render(current);
+
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(srcText(SNIPPETS[current].src));
+      copyBtn.textContent = 'Copied!';
+    } catch (err) {
+      copyBtn.textContent = 'Copy failed';
+    }
+    setTimeout(() => copyBtn.textContent = 'Copy code', 1500);
+  });
+
+  // ===== GitHub: 3D tilt + glare on repo cards (pointer devices only) =====
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.querySelectorAll('.repo').forEach(card => {
+      card.addEventListener('pointermove', (e) => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        card.style.transform = `perspective(900px) rotateX(${(0.5 - y) * 10}deg) rotateY(${(x - 0.5) * 12}deg) translateY(-4px)`;
+        card.style.setProperty('--gx', (x * 100) + '%');
+        card.style.setProperty('--gy', (y * 100) + '%');
+      });
+      card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+    });
+  }
+
+  // ===== GitHub: typed terminal =====
+  const termText = document.getElementById('termText');
+  const termCmds = [
+    'git clone https://github.com/BucketSe/Spotify-Blocker',
+    'git clone https://github.com/BucketSe/ChessAi',
+    'git clone https://github.com/BucketSe/ByteDog',
+  ];
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    termText.textContent = termCmds[0];
+  } else {
+    let ci = 0, chi = 0, deleting = false;
+    (function termTick() {
+      const cmd = termCmds[ci];
+      if (!deleting) {
+        chi++; termText.textContent = cmd.slice(0, chi);
+        if (chi === cmd.length) { deleting = true; return setTimeout(termTick, 1800); }
+        return setTimeout(termTick, 55 + Math.random() * 40);
+      }
+      chi--; termText.textContent = cmd.slice(0, chi);
+      if (chi === 0) { deleting = false; ci = (ci + 1) % termCmds.length; return setTimeout(termTick, 400); }
+      setTimeout(termTick, 22);
+    })();
+  }
+
+  // Discord: click to copy the username
+  document.getElementById('discordCard').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const hint = document.getElementById('discordHint');
+    try {
+      await navigator.clipboard.writeText('.faang');
+      hint.textContent = 'Copied! Paste .faang into Discord to add me';
+    } catch (err) {
+      hint.textContent = 'Add me on Discord: .faang';
+    }
+  });
+
+  // Contact form (front-end only; connect to Formspree or similar to receive messages)
+  document.getElementById('contactForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.getElementById('sent').textContent = 'Thanks! Your message is noted. I will reply soon.';
+    e.target.reset();
+  });
+
+  // ===== Section themes: scroll-linked, eased colour tweens =====
+  const hex = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const PALETTES = {
+    home:     ['#7c9cff', '#3dd9b0', '#1a2250', '#7c9cff', '#3dd9b0'],
+    about:    ['#a78bfa', '#6366f1', '#1e1b4b', '#a78bfa', '#c4b5fd'],
+    github:   ['#3dd9b0', '#7c9cff', '#0c2a2a', '#3dd9b0', '#7c9cff'],
+    code:     ['#f59e0b', '#f97316', '#3b1a07', '#f59e0b', '#fb923c'],
+    services: ['#f472b6', '#fb7185', '#3b0a22', '#f472b6', '#fb7185'],
+    groups:   ['#22d3ee', '#0ea5e9', '#06202e', '#22d3ee', '#38bdf8'],
+    contact:  ['#a3e635', '#22c55e', '#0f2a12', '#a3e635', '#4ade80'],
+    work:     ['#facc15', '#fb923c', '#3a2606', '#facc15', '#fde047'],
+  };
+  const PAL = Object.fromEntries(Object.entries(PALETTES).map(([k, v]) => [k, v.map(hex)]));
+  const themeBg = document.getElementById('themeBg');
+  const root = document.documentElement;
+  const smooth = (t) => t * t * (3 - 2 * t);
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let stops = [];
+  function measureStops() {
+    stops = [...document.querySelectorAll('[data-theme]')].map(el => {
+      const r = el.getBoundingClientRect();
+      return { c: r.top + window.scrollY + r.height / 2, pal: PAL[el.dataset.theme] };
+    }).sort((a, b) => a.c - b.c);
+  }
+  function targetAt(p) {
+    if (!stops.length) return null;
+    if (p <= stops[0].c) return stops[0].pal;
+    const last = stops[stops.length - 1];
+    if (p >= last.c) return last.pal;
+    for (let i = 0; i < stops.length - 1; i++) {
+      const a = stops[i], b = stops[i + 1];
+      if (p >= a.c && p < b.c) {
+        const t = smooth((p - a.c) / (b.c - a.c || 1));
+        return a.pal.map((col, k) => col.map((v, j) => v + (b.pal[k][j] - v) * t));
+      }
+    }
+    return last.pal;
+  }
+
+  let themeCur = null, themeTarget = null, dirty = true;
+  const toRgb = (c) => `rgb(${c.map(Math.round).join(',')})`;
+  const names = ['--c1', '--c2', '--c3', '--accent', '--accent-2'];
+  function paint(cur) {
+    names.forEach((n, i) => {
+      const v = toRgb(cur[i]);
+      if (n.startsWith('--c')) themeBg.style.setProperty(n, v);
+      else root.style.setProperty(n, v);
+    });
+  }
+  function frame() {
+    if (themeTarget) {
+      if (!themeCur || reduceMotion) themeCur = themeTarget.map(c => c.slice());
+      let moved = 0;
+      if (!reduceMotion) {
+        for (let i = 0; i < themeTarget.length; i++) {
+          for (let j = 0; j < 3; j++) {
+            const d = themeTarget[i][j] - themeCur[i][j];
+            themeCur[i][j] += d * 0.07;
+            moved += Math.abs(d);
+          }
+        }
+      }
+      if (dirty || moved > 0.4) { paint(themeCur); dirty = false; }
+    }
+    requestAnimationFrame(frame);
+  }
+  function onThemeScroll() { themeTarget = targetAt(window.scrollY + window.innerHeight * 0.5); }
+  measureStops();
+  onThemeScroll();
+  window.addEventListener('scroll', onThemeScroll, { passive: true });
+  window.addEventListener('resize', () => { measureStops(); onThemeScroll(); }, { passive: true });
+  window.addEventListener('load', () => { measureStops(); onThemeScroll(); });
+  requestAnimationFrame(frame);
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
