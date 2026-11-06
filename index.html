@@ -542,6 +542,15 @@
   }
   @media (hover: hover) { .code-tab:hover { color: var(--text); transform: translateY(-2px); } }
   .code-tab.active { color: var(--text); background: rgba(124,156,255,.14); border-color: rgba(124,156,255,.35); box-shadow: 0 8px 20px -10px var(--glow); }
+  .code-tab[hidden] { display: none; }
+  .code-groups { display: flex; gap: 6px; padding: 12px 10px 0; background: rgba(255,255,255,.02); }
+  .code-group {
+    font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: none;
+    border: 1px solid var(--line); padding: 7px 16px; border-radius: 999px; cursor: pointer;
+    transition: color .3s, background .3s, border-color .3s;
+  }
+  @media (hover: hover) { .code-group:hover { color: var(--text); } }
+  .code-group.active { color: var(--text); background: rgba(124,156,255,.14); border-color: rgba(124,156,255,.35); }
   .code-head {
     display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
     padding: 14px clamp(14px, 2.5vw, 22px); border-bottom: 1px solid var(--line);
@@ -941,17 +950,27 @@
       <div class="section-head reveal">
         <span class="eyebrow">Code</span>
         <h2>Code snippets.</h2>
-        <p class="lead">Production-style Luau, annotated block by block. Hover a note to light up its lines, or hover a line to find its explanation. On touch, tap a note to pin it.</p>
+        <p class="lead" id="codeLead">Production-style Luau, annotated block by block. Hover a note to light up its lines, or hover a line to find its explanation. On touch, tap a note to pin it.</p>
       </div>
 
       <div class="code-wrap reveal d1">
+        <div class="code-groups" role="tablist" aria-label="Snippet category">
+          <button class="code-group active" data-group="roblox" role="tab" aria-selected="true">Roblox</button>
+          <button class="code-group" data-group="projects" role="tab" aria-selected="false">Projects</button>
+        </div>
         <div class="code-tabs" role="tablist" aria-label="Code snippets">
-          <button class="code-tab active" data-tab="ui" role="tab" aria-selected="true">UIManager</button>
-          <button class="code-tab" data-tab="data" role="tab" aria-selected="false">HeroData</button>
-          <button class="code-tab" data-tab="cleanup" role="tab" aria-selected="false">Trove cleanup</button>
-          <button class="code-tab" data-tab="signal" role="tab" aria-selected="false">Signal</button>
-          <button class="code-tab" data-tab="ability" role="tab" aria-selected="false">Ability server</button>
-          <button class="code-tab" data-tab="migrate" role="tab" aria-selected="false">Data migration</button>
+          <button class="code-tab active" data-group="roblox" data-tab="ui" role="tab" aria-selected="true">UIManager</button>
+          <button class="code-tab" data-group="roblox" data-tab="data" role="tab" aria-selected="false">HeroData</button>
+          <button class="code-tab" data-group="roblox" data-tab="cleanup" role="tab" aria-selected="false">Trove cleanup</button>
+          <button class="code-tab" data-group="roblox" data-tab="signal" role="tab" aria-selected="false">Signal</button>
+          <button class="code-tab" data-group="roblox" data-tab="ability" role="tab" aria-selected="false">Ability server</button>
+          <button class="code-tab" data-group="roblox" data-tab="migrate" role="tab" aria-selected="false">Data migration</button>
+          <button class="code-tab" data-group="projects" data-tab="chess-search" role="tab" aria-selected="false" hidden>ChessAi · Search</button>
+          <button class="code-tab" data-group="projects" data-tab="chess-magic" role="tab" aria-selected="false" hidden>ChessAi · Magic bitboards</button>
+          <button class="code-tab" data-group="projects" data-tab="bd-score" role="tab" aria-selected="false" hidden>ByteDog · Scoring</button>
+          <button class="code-tab" data-group="projects" data-tab="bd-bayes" role="tab" aria-selected="false" hidden>ByteDog · Classifier</button>
+          <button class="code-tab" data-group="projects" data-tab="bd-files" role="tab" aria-selected="false" hidden>ByteDog · File checks</button>
+          <button class="code-tab" data-group="projects" data-tab="ag-detect" role="tab" aria-selected="false" hidden>Ad Guard · Detector</button>
         </div>
 
         <div class="code-head">
@@ -967,7 +986,7 @@
         </div>
 
         <div class="code-meta">
-          <span class="tag">Luau</span><span class="tag">Strict mode</span><span class="tag" id="codeLib">No dependencies</span>
+          <span class="tag" id="codeLang">Luau</span><span class="tag" id="codeMode">Strict mode</span><span class="tag" id="codeLib">No dependencies</span>
           <span class="hint">Hover or tap a note to explore</span>
         </div>
       </div>
@@ -1425,6 +1444,186 @@ end
 
 return migrate
 </script>
+
+<script type="text/plain" id="src-chess-search">int negamax(Position& pos, int alpha, int beta, int depth, int ply, bool do_null) {
+    const bool pv_node = beta - alpha > 1;
+    const bool root = ply == 0;
+    pv_len[ply] = ply;
+
+    if (!root) {
+        if (pos.halfmove >= 100 || pos.is_repetition() || pos.insufficient_material()) return 0;
+        // Mate distance pruning
+        alpha = std::max(alpha, -MATE + ply);
+        beta = std::min(beta, MATE - ply - 1);
+        if (alpha >= beta) return alpha;
+    }
+
+    const bool in_check = pos.in_check();
+    if (in_check) depth++; // check extension
+    if (depth <= 0) return qsearch(pos, alpha, beta, ply);
+
+    if ((++nodes & 2047) == 0) check_time();
+    if (stopped) return 0;
+    if (ply >= MAX_PLY) return evaluate(pos);
+    if (ply > seldepth) seldepth = ply;
+
+    Move tt_move = 0;
+    if (const TTEntry* e = TT.probe(pos.hash)) {
+        tt_move = e->move;
+        if (!pv_node && e->depth >= depth) {
+            int s = score_from_tt(e->score, ply);
+            if (e->flag == TT_EXACT || (e->flag == TT_LOWER && s >= beta) || (e->flag == TT_UPPER && s <= alpha))
+                return s;
+        }
+    }
+
+    const int static_eval = in_check ? -INF : evaluate(pos);
+
+    if (!pv_node && !in_check) {
+        // Reverse futility pruning
+        if (depth <= 7 && static_eval - 80 * depth >= beta && std::abs(beta) < MATE_BOUND) return static_eval;
+
+        // Null move pruning
+        if (do_null && depth >= 3 && static_eval >= beta && pos.has_non_pawn_material(pos.side)) {
+            int R = 3 + depth / 4 + std::min((static_eval - beta) / 200, 3);
+            pos.make_null();
+            int s = -negamax(pos, -beta, -beta + 1, depth - 1 - R, ply + 1, false);
+            pos.unmake_null();
+            if (stopped) return 0;
+            if (s >= beta) return s >= MATE_BOUND ? beta : s;
+        }
+    }
+</script>
+
+<script type="text/plain" id="src-chess-magic">struct Magic {
+    Bitboard mask;
+    Bitboard magic;
+    Bitboard* attacks;
+    int shift;
+};
+
+extern Magic RookMagics[64], BishopMagics[64];
+extern Bitboard PawnAttacks[2][64], KnightAttacks[64], KingAttacks[64];
+extern Bitboard FileBB[8], AdjacentFiles[8], PassedMask[2][64];
+
+inline Bitboard rook_attacks(int sq, Bitboard occ) {
+    const Magic& m = RookMagics[sq];
+    return m.attacks[((occ & m.mask) * m.magic) >> m.shift];
+}
+inline Bitboard bishop_attacks(int sq, Bitboard occ) {
+    const Magic& m = BishopMagics[sq];
+    return m.attacks[((occ & m.mask) * m.magic) >> m.shift];
+}
+inline Bitboard queen_attacks(int sq, Bitboard occ) { return rook_attacks(sq, occ) | bishop_attacks(sq, occ); }
+</script>
+
+<script type="text/plain" id="src-bd-score">def score_text(text: str, multiplier: Callable[[str], float] | None = None) -> tuple[int, list[str], list[str]]:
+    """Sum rule weights (each rule counts once, scaled by its learned reliability) plus a breadth bonus."""
+    text = normalize(text)
+    total, matches, labels, cats = 0, [], [], set()
+    for cat, weight, rx, label in RULES:
+        if rx.search(text):
+            m = multiplier(label) if multiplier else 1.0
+            w = round(weight * m)
+            total += w
+            cats.add(cat)
+            labels.append(label)
+            matches.append(f"{label} (+{w})" if m == 1.0 else f"{label} (+{w}, learned x{m:.1f})")
+    # Scams usually combine several tactics (e.g. giveaway + urgency + Telegram).
+    if len(cats) >= 3:
+        total += 15
+        matches.append("3+ scam categories (+15)")
+    elif len(cats) == 2:
+        total += 5
+        matches.append("2 scam categories (+5)")
+    return total, matches, labels
+</script>
+
+<script type="text/plain" id="src-bd-bayes">    def prob_scam(self, text: str) -> float | None:
+        """P(scam) using Bernoulli-style counts and equal priors (so lots of sampled
+        normal chat doesn't drown out the scam class)."""
+        if not self.ready:
+            return None
+        toks = [t for t in tokenize(text) if t in self.counts[0] or t in self.counts[1]]
+        if len(toks) < 3:
+            return None
+        log_odds = 0.0
+        for t in toks:
+            p_scam = (self.counts[SCAM][t] + 1) / (self.docs[SCAM] + 2)
+            p_ham = (self.counts[HAM][t] + 1) / (self.docs[HAM] + 2)
+            log_odds += math.log(p_scam / p_ham)
+        log_odds /= math.sqrt(len(toks))  # damp overconfidence on long texts
+        return 1 / (1 + math.exp(-max(-30.0, min(30.0, log_odds))))
+</script>
+
+<script type="text/plain" id="src-bd-files">def check_image_bytes(data: bytes) -> list[tuple[str, int]]:
+    head = data[:64].lower()
+    for magic, label in _MAGIC:
+        if head.startswith(magic.lower()):
+            return [(f"file looks like an image but is actually a {label}", 100)]
+    if b"<svg" in data[:2048].lower() and _SVG_SCRIPT.search(data):
+        return [("SVG image contains script code", 80)]
+    end = None
+    if data.startswith(b"\x89PNG"):
+        i = data.rfind(b"IEND")
+        end = i + 8 if i != -1 else None
+    elif data.startswith(b"\xff\xd8"):
+        i = data.rfind(b"\xff\xd9")
+        end = i + 2 if i != -1 else None
+    if end is not None:
+        trailer = data[end:]
+        if len(trailer) > 64 and any(sig in trailer for sig in _HIDDEN):
+            return [("hidden file appended inside the image", 70)]
+    return []
+</script>
+
+<script type="text/plain" id="src-ag-detect">    def update(self, now, titles, sound, mi, last_pause):
+        """titles: Spotify's window titles. sound: Spotify is audible right now (None if its
+        audio can't be found). mi: a fresh media-session reading or None. last_pause: when
+        you last might have paused Spotify. Returns 'sure', 'maybe' or None."""
+        if sound is None:  # can't hear Spotify (unusual audio setup): trust the media session
+            sound = bool(mi and mi.get("status") == "playing")
+        if sound:
+            self.last_sound = now
+            if self.sound_since is None:
+                self.sound_since = now
+        elif self.sound_since is not None and now - self.last_sound > SOUND_GAP:
+            self.sound_since = None  # a real silence, not a gap between words
+        heard = self.sound_since is not None
+        sustained = now - self.sound_since if heard else 0.0
+
+        track = next((t for t in titles if is_track_title(t)), None)
+        named = next((t for t in titles if is_sure_ad(t)), None)
+        generic = next((t for t in titles if looks_like_ad(t)), None)
+        level = media_ad_level(mi)
+
+        reason, sure = None, False
+        if named:
+            reason, sure = f'title "{named}"', True
+        elif level == 2 and (not track or not _same_song(track, mi)):
+            reason, sure = _media_reason(mi), True
+        elif not track and (generic or level == 1):
+            reason = f'title "{generic}"' if generic else _media_reason(mi)
+
+        if reason and not sure:
+            paused = bool(mi and mi.get("status") in ("paused", "stopped"))
+            if (paused or now - last_pause < PAUSE_GRACE) and sustained < SUSTAINED:
+                reason = None  # you (probably) just paused; the sound is only fading out
+        if reason is None:
+            self.since = self.seen = None
+            self.sure, self.reason, self.silent = False, "", False
+            return None
+        if self.seen is None:
+            self.seen = now
+        self.silent = not heard
+        if not heard:
+            self.since = None
+            return None
+        if self.since is None:
+            self.since = now
+        self.sure, self.reason = sure, reason
+        return "sure" if sure else "maybe"
+</script>
   </section>
 
 
@@ -1804,12 +2003,50 @@ return migrate
       { start: 'local function reconcile', end: 'reconcile(current, default)', title: 'Non-destructive reconcile', text: "Missing keys are filled from the template and existing values are never overwritten. Nested tables merge recursively." },
       { start: 'local function migrate', end: 'reconcile(data, TEMPLATE)', title: 'Run once, stamp on save', text: "Only steps newer than the saved version run, and the version is written back, so a migration can't run twice on the same data." },
     ]},
+    "chess-search": { file: "search.cpp", src: "src-chess-search", lib: "ChessAi \u00b7 engine/src", lang: "cpp", langName: "C++20", mode: "Chess engine", notes: [
+      { start: "// Mate distance pruning", end: "if (alpha >= beta) return alpha;", title: "Mate distance pruning", text: "Draws return 0 immediately. Then the window is clamped to the fastest mate still possible from this ply, so the search never wastes time looking for a slower mate than one it already has." },
+      { start: "if (in_check) depth++", end: "if (depth <= 0) return qsearch", title: "Check extension, then quiescence", text: "Positions in check search one ply deeper. When depth runs out the search hands over to quiescence, which keeps resolving captures so the evaluation never lands in the middle of an exchange." },
+      { start: "if (const TTEntry* e = TT.probe", end: "return s;", title: "Transposition table cutoff", text: "A position seen before can answer immediately, but only when the stored depth is enough, the node is not on the principal variation, and the stored bound (exact, lower or upper) actually settles the window." },
+      { start: "// Reverse futility pruning", end: "return static_eval;", title: "Reverse futility pruning", text: "If the static evaluation already beats beta by a margin that grows with depth, the node is cut without searching. Mate-range scores are excluded so forced mates are never skipped." },
+      { start: "// Null move pruning", end: "if (s >= beta) return", title: "Null move pruning", text: "Let the opponent move twice. If the position is still good enough to fail high after a reduced search, it is cut. The reduction grows with depth and with how far ahead the evaluation is, and it is disabled when only pawns remain." },
+    ]},
+    "chess-magic": { file: "bitboard.h", src: "src-chess-magic", lib: "ChessAi \u00b7 engine/src", lang: "cpp", langName: "C++20", mode: "Chess engine", notes: [
+      { start: "struct Magic", end: "};", title: "One entry per square", text: "Each square stores a blocker mask, a magic multiplier, a pointer into a shared attack table and a shift. That is everything needed to turn a board occupancy into attacked squares." },
+      { start: "inline Bitboard rook_attacks", end: "}", title: "One multiply, one shift", text: "Mask the occupancy down to the blockers that matter, multiply by the magic number and shift. The result is a perfect hash straight into a precomputed table, so sliding attacks cost a handful of instructions with no ray loops." },
+      { start: "inline Bitboard queen_attacks", end: "inline Bitboard queen_attacks", title: "The queen comes free", text: "A queen moves like a rook and a bishop, so its attacks are the union of the two lookups." },
+    ]},
+    "bd-score": { file: "scambot/decision.py", src: "src-bd-score", lib: "ByteDog \u00b7 scambot", lang: "py", langName: "Python", mode: "Discord bot", notes: [
+      { start: "text = normalize(text)", end: "text = normalize(text)", title: "Normalise noisy OCR text", text: "Text read from images is messy, so it is normalised first. The phrase rules are written to tolerate what is left." },
+      { start: "for cat, weight, rx, label in RULES", end: "matches.append(f\"{label}", title: "Each rule counts once, scaled by learning", text: "A rule adds its weight a single time, multiplied by how reliable moderators have shown it to be in this server. Every match is recorded with its points so the alert can explain itself." },
+      { start: "if len(cats) >= 3", end: "2 scam categories (+5)", title: "Breadth bonus", text: "Real scams combine tactics, such as a giveaway plus urgency plus an off-platform link. Hitting several categories adds a bonus, which makes one weak phrase on its own unlikely to trip the threshold." },
+    ]},
+    "bd-bayes": { file: "scambot/learner.py", src: "src-bd-bayes", lib: "ByteDog \u00b7 scambot", lang: "py", langName: "Python", mode: "Discord bot", notes: [
+      { start: "if not self.ready", end: "return None", title: "Stays off until it can be trusted", text: "The model returns nothing until it has at least 20 examples of each class, and also when a message has fewer than three known words. A small or lopsided model never gets a vote." },
+      { start: "for t in toks", end: "log_odds += math.log", title: "Log-odds with smoothing", text: "Each known token adds the log of how much more often it appears in scams than in normal chat. Add-one smoothing keeps unseen combinations from producing zeros or infinities." },
+      { start: "log_odds /= math.sqrt", end: "log_odds /= math.sqrt", title: "Damp long texts", text: "Dividing by the square root of the token count stops long messages from piling up overconfident evidence." },
+      { start: "return 1 / (1 + math.exp", end: "return 1 / (1 + math.exp", title: "Squash to a probability", text: "A logistic function turns log-odds into a probability. The clamp to plus or minus 30 avoids overflow." },
+    ]},
+    "bd-files": { file: "scambot/attachments.py", src: "src-bd-files", lib: "ByteDog \u00b7 scambot", lang: "py", langName: "Python", mode: "Discord bot", notes: [
+      { start: "head = data[:64]", end: "return [(f\"file looks like an image", title: "Magic bytes beat the extension", text: "The first bytes of the file are compared with known signatures for programs, archives and web pages. A file named like a picture that starts with MZ is an executable, whatever it is called." },
+      { start: "if b\"<svg\"", end: "return [(\"SVG", title: "Scripts inside SVG", text: "SVG is XML and can carry script. An SVG with script tags, event handlers or javascript: links is flagged." },
+      { start: "end = None", end: "end = i + 2", title: "Find where the real image ends", text: "PNG ends at its IEND chunk and JPEG at the end-of-image marker. Finding the true end shows whether anything was glued on after it." },
+      { start: "trailer = data[end:]", end: "return [(\"hidden file appended", title: "Anything after the end is suspicious", text: "If a real image has a sizeable trailer containing an archive, a script or a program signature, a hidden payload is reported." },
+    ]},
+    "ag-detect": { file: "AdDetector.update", src: "src-ag-detect", lib: "Ad Guard for Spotify", lang: "py", langName: "Python", mode: "Windows app", notes: [
+      { start: "if sound is None", end: "sound = bool(mi", title: "Fallback when audio is hidden", text: "On unusual audio setups Spotify's sound cannot be read. The detector then trusts the media session's playing status rather than guessing." },
+      { start: "if sound:", end: "self.sound_since = None  # a real silence", title: "Gaps between words are not silence", text: "Sound resets only after a gap longer than a threshold, so the short pauses inside speech do not restart the timer." },
+      { start: "reason, sure = None, False", end: "elif not track and (generic or level == 1):", title: "Sure versus maybe", text: "A named ad label or the media session locking skipping is a sure ad and acted on at once. A generic title such as Spotify Free is only a maybe, because a paused Spotify shows the same title." },
+      { start: "if reason and not sure:", end: "reason = None  # you (probably)", title: "A pause is not an ad", text: "If you probably just paused, a generic title with fading sound is ignored until the sound has been steady for a while." },
+      { start: "return \"sure\" if sure", end: "return \"sure\" if sure", title: "A graded answer", text: "The method has no side effects and only reports sure, maybe or nothing. A separate step decides when to mute or restart, so the rules can be tested alone." },
+    ]},
   };
 
   const codeEl = document.getElementById('codeEl');
   const notesEl = document.getElementById('notesEl');
   const fileEl = document.getElementById('codeFile');
   const libEl = document.getElementById('codeLib');
+  const langEl = document.getElementById('codeLang');
+  const modeEl = document.getElementById('codeMode');
   const srcText = (id) => document.getElementById(id).textContent.replace(/^\n/, '').replace(/\n$/, '');
 
   const KW = new Set(['and','break','do','else','elseif','end','export','false','for','function','if','in','local','nil','not','or','repeat','return','then','true','type','until','while','continue']);
@@ -1834,6 +2071,54 @@ return migrate
       last = m.index + tok.length;
     }
     return out + esc(line.slice(last));
+  }
+
+  // Extra languages for the Projects tabs (Luau keeps using highlightLine above).
+  const LANGS = {
+    cpp: {
+      re: /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|([A-Za-z_][A-Za-z0-9_]*)/g,
+      kw: new Set(['break','case','class','const','constexpr','continue','do','else','enum','extern','false','for','if','inline','return','static','struct','true','while','using','namespace','nullptr','public','private','void','unsigned','new','delete']),
+      bi: new Set(['std','max','min','abs','find','clamp','begin','end','evaluate','qsearch']),
+      ty: new Set(['int','bool','auto','Position','Move','Bitboard','Magic','TTEntry','MoveList','U64','int16_t','int8_t','uint8_t','size_t','TranspositionTable']),
+    },
+    py: {
+      re: /(#[^\n]*)|([bfrBFR]{0,2}"(?:[^"\\\n]|\\.)*"|[bfrBFR]{0,2}'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|([A-Za-z_][A-Za-z0-9_]*)/g,
+      kw: new Set(['and','as','class','def','elif','else','for','from','if','import','in','is','not','or','return','while','with','None','True','False','lambda','continue','break','next','any']),
+      bi: new Set(['len','int','float','bool','bytes','str','list','dict','set','zip','math','re','self','sum','min','max','round']),
+      ty: new Set(['Decision','Learner','Callable']),
+    },
+  };
+  function highlightWith(line, L) {
+    let out = '', last = 0, m;
+    L.re.lastIndex = 0;
+    while ((m = L.re.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      const [tok, com, str, num, ident] = m;
+      if (com) out += `<span class="c">${esc(com)}</span>`;
+      else if (str) out += `<span class="s">${esc(str)}</span>`;
+      else if (num) out += `<span class="n">${num}</span>`;
+      else if (L.kw.has(ident)) out += `<span class="k">${ident}</span>`;
+      else if (L.bi.has(ident)) out += `<span class="b">${ident}</span>`;
+      else if (L.ty.has(ident)) out += `<span class="t">${ident}</span>`;
+      else out += ident;
+      last = m.index + tok.length;
+    }
+    return out + esc(line.slice(last));
+  }
+  function highlightAll(lines, lang) {
+    if (lang === 'luau') return lines.map(highlightLine);
+    const L = LANGS[lang];
+    let inDoc = false;
+    return lines.map(l => {
+      if (lang === 'py') {
+        const quotes = (l.match(/"{3}/g) || []).length;
+        if (inDoc || quotes) {
+          if (quotes % 2) inDoc = !inDoc;
+          return `<span class="s">${esc(l)}</span>`;
+        }
+      }
+      return highlightWith(l, L);
+    });
   }
 
   // Resolve a note to a [startLine, endLine] range (0-based) using text anchors.
@@ -1867,8 +2152,9 @@ return migrate
     const raw = srcText(cfg.src);
     const lines = raw.split('\n');
     ranges = cfg.notes.map(n => resolveRange(lines, n.start, n.end));
+    const hl = highlightAll(lines, cfg.lang || 'luau');
     codeEl.innerHTML = lines.map((l, i) =>
-      `<div class="ln" data-i="${i}"><span class="no">${i + 1}</span><span class="tx">${highlightLine(l) || ' '}</span></div>`
+      `<div class="ln" data-i="${i}"><span class="no">${i + 1}</span><span class="tx">${hl[i] || ' '}</span></div>`
     ).join('');
     notesEl.innerHTML = cfg.notes.map((n, k) => {
       const r = ranges[k];
@@ -1877,6 +2163,8 @@ return migrate
     }).join('');
     fileEl.textContent = cfg.file;
     libEl.textContent = cfg.lib;
+    langEl.textContent = cfg.langName || 'Luau';
+    modeEl.textContent = cfg.mode || 'Strict mode';
     pinned = null;
     clearHL();
   }
@@ -1920,6 +2208,23 @@ return migrate
     });
   });
   render(current);
+
+  // Roblox / Projects switch
+  const leadEl = document.getElementById('codeLead');
+  const LEADS = {
+    roblox: leadEl.textContent,
+    projects: "Real code from my own projects outside Roblox: the ChessAi engine, the ByteDog Discord bot and Ad Guard for Spotify, annotated the same way. Hover a note to light up its lines, or hover a line to find its explanation. On touch, tap a note to pin it.",
+  };
+  document.querySelectorAll('.code-group').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const g = btn.dataset.group;
+      document.querySelectorAll('.code-group').forEach(b => { const on = b === btn; b.classList.toggle('active', on); b.setAttribute('aria-selected', String(on)); });
+      tabs.forEach(tb => { tb.hidden = tb.dataset.group !== g; });
+      leadEl.textContent = LEADS[g];
+      const first = [...tabs].find(tb => tb.dataset.group === g);
+      if (first) first.click();
+    });
+  });
 
   const copyBtn = document.getElementById('copyBtn');
   copyBtn.addEventListener('click', async () => {
