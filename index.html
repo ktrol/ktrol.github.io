@@ -282,6 +282,69 @@
     .nav-links li.mobile-only { display: none; }
   }
 
+  /* ============ Nav: floating 3D glass bar ============ */
+  .nav .container { position: relative; }
+  .nav-progress {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; pointer-events: none;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform-origin: left center; transform: scaleX(var(--p, 0)); box-shadow: 0 0 10px rgba(124,156,255,.6);
+  }
+  .nav-pill { display: none; }
+  @media (min-width: 861px) {
+    .nav {
+      inset: 12px 0 auto 0; height: 58px; perspective: 1100px; pointer-events: none;
+      background: none; border-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none;
+      transition: inset .35s var(--ease), height .35s var(--ease);
+    }
+    .nav.scrolled { inset: 8px 0 auto 0; height: 54px; background: none; border-color: transparent; }
+    .nav .container {
+      pointer-events: auto; padding-inline: 22px; border-radius: 20px;
+      background: linear-gradient(180deg, rgba(22,26,38,.62), rgba(10,12,18,.62));
+      border: 1px solid rgba(255,255,255,.09);
+      box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 -1px 0 rgba(0,0,0,.4) inset,
+                  0 22px 44px -22px rgba(0,0,0,.85), 0 6px 18px -8px rgba(0,0,0,.6);
+      backdrop-filter: blur(20px) saturate(170%); -webkit-backdrop-filter: blur(20px) saturate(170%);
+      transform-style: preserve-3d;
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+      transition: transform .3s ease-out, background .35s, box-shadow .35s, border-color .35s;
+    }
+    .nav.scrolled .container {
+      background: linear-gradient(180deg, rgba(20,24,34,.84), rgba(8,10,15,.84));
+      border-color: rgba(124,156,255,.16);
+      box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -1px 0 rgba(0,0,0,.45) inset,
+                  0 26px 50px -22px rgba(0,0,0,.95), 0 0 0 1px rgba(124,156,255,.05), 0 8px 24px -10px rgba(124,156,255,.18);
+    }
+    .nav .container::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+      background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0%), rgba(124,156,255,.16), transparent 62%);
+      transition: opacity .35s;
+    }
+    .nav .container:hover::before { opacity: 1; }
+    .nav-progress { left: 22px; right: 22px; }
+    .nav nav, .nav-links, .nav-links li { transform-style: preserve-3d; }
+    .nav-links { position: relative; gap: 4px; }
+    .nav-links a {
+      display: block; padding: 8px 14px; border-radius: 12px; position: relative; z-index: 1;
+      transition: color .3s, transform .35s var(--ease);
+    }
+    .nav-links a::after { display: none; }
+    .nav-links a:hover { transform: translateZ(16px) translateY(-1px); }
+    .nav-links a:active { transform: translateZ(4px) scale(.96); }
+    .nav-pill {
+      display: block; position: absolute; left: 0; top: 0; height: 100%; width: 0; z-index: 0; pointer-events: none;
+      border-radius: 12px; opacity: 0;
+      background: linear-gradient(180deg, rgba(124,156,255,.2), rgba(124,156,255,.08));
+      border: 1px solid rgba(124,156,255,.32);
+      box-shadow: 0 8px 22px -8px rgba(124,156,255,.55), 0 1px 0 rgba(255,255,255,.12) inset;
+      transition: transform .5s var(--ease), width .5s var(--ease), opacity .3s;
+    }
+    .logo { display: inline-block; transition: transform .35s var(--ease), text-shadow .35s; }
+    .logo:hover { transform: translateZ(22px) rotateX(-6deg); text-shadow: 0 8px 22px rgba(124,156,255,.55); }
+    .nav .nav-cta { transition: transform .35s var(--ease), box-shadow .35s, background .3s, color .3s; box-shadow: 0 10px 22px -10px rgba(124,156,255,.7); }
+    .nav .nav-cta:hover { transform: translateZ(20px) translateY(-2px); box-shadow: 0 18px 30px -10px rgba(124,156,255,.85); }
+    .nav .nav-cta:active { transform: translateZ(6px) scale(.96); }
+  }
+
   /* ============ Buttons ============ */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 10px;
@@ -809,6 +872,7 @@
       <a href="#contact" class="btn primary nav-cta" style="min-height:40px; padding:9px 18px; font-size:.88rem">Start a project</a>
       <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks"><span></span></button>
     </div>
+    <span class="nav-progress" id="navProgress" aria-hidden="true"></span>
   </div>
 </header>
 
@@ -1959,6 +2023,8 @@ inline Bitboard queen_attacks(int sq, Bitboard occ) { return rook_attacks(sq, oc
   const sections = [...document.querySelectorAll('main section[id]')];
   function onScroll() {
     nav.classList.toggle('scrolled', window.scrollY > 40);
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    nav.style.setProperty('--p', max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)).toFixed(4) : 0);
     let current = '';
     sections.forEach(s => { if (window.scrollY >= s.offsetTop - 200) current = s.id; });
     links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
@@ -1978,6 +2044,53 @@ inline Bitboard queen_attacks(int sq, Bitboard occ) { return rook_attacks(sq, oc
   links.forEach(a => a.addEventListener('click', () => setMenu(false)));
   window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  // Nav: sliding highlight that follows hover / the active section (desktop)
+  const navUl = document.getElementById('navLinks');
+  const navPill = document.createElement('span');
+  navPill.className = 'nav-pill';
+  navPill.setAttribute('aria-hidden', 'true');
+  navUl.appendChild(navPill);
+  const desktopNav = window.matchMedia('(min-width: 861px)');
+  function movePill(target) {
+    if (!desktopNav.matches || !target) { navPill.style.opacity = '0'; return; }
+    navPill.style.width = target.offsetWidth + 'px';
+    // Sum offsets up to the list (preserve-3d changes which element is the offsetParent)
+    let x = 0, el = target;
+    while (el && el !== navUl) { x += el.offsetLeft; el = el.offsetParent; }
+    navPill.style.transform = `translateX(${x}px)`;
+    navPill.style.opacity = '1';
+  }
+  const activeLink = () => navUl.querySelector('a.active');
+  function settlePill() { movePill(activeLink()); }
+  links.forEach(a => {
+    a.addEventListener('pointerenter', () => movePill(a));
+    a.addEventListener('focus', () => movePill(a));
+  });
+  navUl.addEventListener('pointerleave', settlePill);
+  navUl.addEventListener('focusout', settlePill);
+  window.addEventListener('scroll', settlePill, { passive: true });
+  window.addEventListener('resize', settlePill);
+  desktopNav.addEventListener('change', settlePill);
+  settlePill();
+
+  // Nav: 3D tilt toward the cursor + moving light (fine pointers, motion allowed)
+  if (window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches) {
+    const bar = nav.querySelector('.container');
+    bar.addEventListener('pointermove', (e) => {
+      if (!desktopNav.matches) return;
+      const r = bar.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      bar.style.setProperty('--ry', ((x - 0.5) * 5).toFixed(2) + 'deg');
+      bar.style.setProperty('--rx', ((0.5 - y) * 8).toFixed(2) + 'deg');
+      bar.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      bar.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+    bar.addEventListener('pointerleave', () => {
+      bar.style.setProperty('--rx', '0deg');
+      bar.style.setProperty('--ry', '0deg');
+    });
+  }
 
   // Cursor glow + card spotlight (pointer devices only)
   const glow = document.getElementById('glow');
