@@ -310,6 +310,24 @@
   /* ============ Hero ============ */
   .hero { min-height: 100svh; display: flex; align-items: center; padding-top: calc(var(--nav-h) + 40px); padding-bottom: 72px; }
   .hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr); gap: clamp(40px, 5vw, 80px); align-items: center; width: 100%; }
+  .hero { position: relative; }
+  .scroll-cue {
+    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--muted); text-decoration: none; transition: opacity .4s ease, color .3s;
+  }
+  .scroll-cue:hover { color: var(--text); }
+  .scroll-cue.hide { opacity: 0; pointer-events: none; }
+  .scroll-cue .mouse {
+    width: 24px; height: 38px; border: 2px solid currentColor; border-radius: 14px;
+    display: flex; justify-content: center; padding-top: 7px; box-sizing: border-box;
+  }
+  .scroll-cue .mouse i {
+    width: 3px; height: 8px; border-radius: 3px; background: var(--accent);
+    animation: scrollDot 1.8s var(--ease) infinite;
+  }
+  .scroll-cue .scroll-label { font-size: .68rem; letter-spacing: .22em; text-transform: uppercase; }
+  @keyframes scrollDot { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 10px; font-size: .82rem; color: var(--muted);
     border: 1px solid var(--line); background: rgba(255,255,255,.02); padding: 7px 14px 7px 8px; border-radius: 999px; margin-bottom: 24px;
@@ -793,7 +811,6 @@
         <h1 class="reveal d1">Building systems <span class="gradient-text">that run</span> under the hood.</h1>
         <p class="typed" id="typed"></p>
         <div class="btn-row reveal d2">
-          <a href="#work" class="btn primary">View my work</a>
           <a href="#contact" class="btn">Get in touch</a>
         </div>
       </div>
@@ -807,6 +824,10 @@
         <div class="float-card fc-2"><em>✓</em> state &rarr; <b>UI</b> synced<br><em>✓</em> data reconciled</div>
       </div>
     </div>
+    <a href="#work" class="scroll-cue" id="scrollCue" aria-label="Scroll down to my work">
+      <span class="mouse"><i></i></span>
+      <span class="scroll-label">Scroll</span>
+    </a>
   </section>
 
   <!-- Stats + tech strip -->
@@ -2250,6 +2271,15 @@ inline Bitboard queen_attacks(int sq, Bitboard occ) { return rook_attacks(sq, oc
       card.addEventListener('pointerleave', () => { card.style.transform = ''; });
     });
   }
+
+  // ===== Hero scroll cue: fades out once you start scrolling =====
+  (function () {
+    const cue = document.getElementById('scrollCue');
+    if (!cue) return;
+    const sync = () => cue.classList.toggle('hide', window.scrollY > 80);
+    window.addEventListener('scroll', sync, { passive: true });
+    sync();
+  })();
 
   // ===== GitHub: typed terminal =====
   const termText = document.getElementById('termText');
