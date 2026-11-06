@@ -326,6 +326,17 @@
     width: 3px; height: 8px; border-radius: 3px; background: var(--accent);
     animation: scrollDot 1.8s var(--ease) infinite;
   }
+  .scroll-cue .mouse { position: relative; }
+  .scroll-cue .mouse::after {
+    content: ""; position: absolute; inset: -2px; border-radius: 14px; border: 2px solid var(--accent);
+    opacity: 0; pointer-events: none;
+  }
+  .scroll-cue.clicked .mouse { animation: cuePress .55s var(--ease); color: var(--accent); }
+  .scroll-cue.clicked .mouse::after { animation: cueRipple .7s ease-out; }
+  .scroll-cue.clicked .mouse i { animation: cueDrop .55s var(--ease); }
+  @keyframes cuePress { 0% { transform: scale(1); } 25% { transform: scale(.86); } 60% { transform: scale(1.1) translateY(4px); } 100% { transform: scale(1); } }
+  @keyframes cueRipple { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.4, 1.9); opacity: 0; } }
+  @keyframes cueDrop { 0% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(14px); opacity: 0; } 51% { transform: translateY(-4px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
   .scroll-cue .scroll-label { font-size: .68rem; letter-spacing: .22em; text-transform: uppercase; }
   @keyframes scrollDot { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
   .hero-badge {
@@ -2279,6 +2290,13 @@ inline Bitboard queen_attacks(int sq, Bitboard occ) { return rook_attacks(sq, oc
     const sync = () => cue.classList.toggle('hide', window.scrollY > 80);
     window.addEventListener('scroll', sync, { passive: true });
     sync();
+    // Click animation (the jump to #work still happens immediately)
+    cue.addEventListener('click', () => {
+      cue.classList.remove('clicked');
+      void cue.offsetWidth; // restart the animation on rapid clicks
+      cue.classList.add('clicked');
+      setTimeout(() => cue.classList.remove('clicked'), 800);
+    });
   })();
 
   // ===== GitHub: typed terminal =====
