@@ -469,6 +469,15 @@
   .snip-code { min-width: 0; background: #0a0c10; border-right: 1px solid var(--line); }
   .snip-code pre { max-height: min(640px, 72svh); padding: 14px 0; }
   .snip-code code { display: block; min-width: max-content; }
+  pre {
+    margin: 0; overflow: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    font-size: clamp(.72rem, .64rem + .35vw, .9rem); line-height: 1.7;
+    color: #c9d1e0; background: #0a0c10; tab-size: 4;
+    scrollbar-width: thin; scrollbar-color: var(--line-2) transparent;
+  }
+  code { font-family: inherit; }
+
   .ln {
     display: flex; gap: 16px; min-width: max-content; padding-inline: 12px 24px 0 0; margin-inline: 0;
     border-left: 2px solid transparent; transition: background .25s, border-color .25s, transform .25s var(--ease);
