@@ -613,8 +613,12 @@
     background: rgba(124,156,255,.12); color: var(--accent);
   }
   .contact-info a > div { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+  .contact-center { max-width: 640px; margin-inline: auto; text-align: center; }
+  .contact-center .eyebrow { justify-content: center; }
+  .contact-center .lead { margin-inline: auto; }
+  .contact-center .contact-info a { justify-content: center; }
   .contact-info small { color: var(--muted); display: block; font-size: .8rem; font-weight: 400; }
-  @media (hover: hover) { .contact-info a:hover { border-color: var(--accent); transform: translateX(6px); } }
+  @media (hover: hover) { .contact-info a:hover { border-color: var(--accent); transform: translateY(-3px); } }
 
   /* ============ Footer ============ */
   footer { border-top: 1px solid var(--line); }
@@ -1628,7 +1632,7 @@ inline Bitboard queen_attacks(int sq, Bitboard occ) { return rook_attacks(sq, oc
   <!-- Contact -->
   <section id="contact" class="section" data-theme="contact">
     <div class="container">
-      <div class="reveal" style="max-width:640px">
+      <div class="reveal contact-center">
         <span class="eyebrow">Contact</span>
         <h2>Let's build something.</h2>
         <p class="lead">Have a project, a game idea or a tool you need? Reach out on Discord or Roblox.</p>
